@@ -1,0 +1,69 @@
+{
+  "schema": "core-engine.adr/v1",
+  "decisions": [
+    {
+      "id": "ADR-001",
+      "title": "Redis Streams como espinha dorsal, n8n como cola",
+      "status": "aceito",
+      "context": "O plano inicial usava o n8n como barramento central processando todos os webhooks. n8n tem overhead alto por execucao e serializa dados de execucao no Postgres.",
+      "decision": "Usar Redis Streams (NATS quando escalar) com consumidores finos como espinha. n8n/Activepieces ficam como um consumidor entre varios, fora do hot path.",
+      "consequences": "Throughput de webhooks deixa de depender do n8n. n8n continua util para automacoes de negocio configuraveis."
+    },
+    {
+      "id": "ADR-002",
+      "title": "LLM via API externa em producao",
+      "status": "aceito",
+      "context": "A1 free tem 4 OCPU/24GB sem GPU. Ollama 7B satura a CPU e mata os workers.",
+      "decision": "Chat/agentes via API externa. Ollama apenas para embeddings pequenos, se necessario.",
+      "consequences": "Custo por token externo; em troca, previsibilidade de latencia e workers vivos no pico."
+    },
+    {
+      "id": "ADR-003",
+      "title": "Integrar OSS como servico, nao copiar codigo",
+      "status": "aceito",
+      "context": "Tentacao de forkar e colar o codigo dos OSS no nosso repo.",
+      "decision": "Rodar imagens oficiais e integrar por API/webhook/MCP. Fork apenas cirurgico (Chatwoot white-label).",
+      "consequences": "Evita upstream drift, contaminacao AGPL e divida de manutencao. Exige camada de integracao propria."
+    },
+    {
+      "id": "ADR-004",
+      "title": "Fronteira AGPL = processos separados por rede",
+      "status": "aceito",
+      "context": "Cinco OSS centrais sao AGPL-3.0.",
+      "decision": "Comunicar com os apps AGPL exclusivamente por HTTP/eventos, mantendo o codigo proprio em processos separados.",
+      "consequences": "Codigo proprio nao e contaminado pela AGPL. PI concentrada no Control Plane."
+    },
+    {
+      "id": "ADR-005",
+      "title": "CQRS com ClickHouse para o BI",
+      "status": "aceito",
+      "context": "Queries analiticas no mesmo Postgres do OLTP geram deadlock e timeout.",
+      "decision": "Escrita no Postgres, leitura analitica no ClickHouse alimentado por micro-batches.",
+      "consequences": "BI responde em ms; risco de divergencia exige monitorar o lag do batch."
+    },
+    {
+      "id": "ADR-006",
+      "title": "Topologia multi-box para a rota de integracao",
+      "status": "aceito",
+      "context": "7 apps com banco proprio nao cabem em 24GB.",
+      "decision": "Distribuir em ~4 boxes (dados, apps de produto, mensageria+orquestracao, BI+edge) ou instancia A1 paga maior.",
+      "consequences": "Contradiz 'tudo num box'; decisao consciente entre construir do zero (cabe) e integrar OSS (mais maquina)."
+    },
+    {
+      "id": "ADR-007",
+      "title": "Control Plane proprio como fonte de verdade de tenancy",
+      "status": "aceito",
+      "context": "Cada app tem seu proprio modelo de tenant e IDs.",
+      "decision": "Criar um Control Plane com modelo canonico e app_entity_map para mapear IDs entre apps e provisionar recursos.",
+      "consequences": "Concentra a PI; unico ponto a manter sincronizado com as APIs dos apps."
+    },
+    {
+      "id": "ADR-008",
+      "title": "Dinheiro em bigint centavos e versoes pinadas",
+      "status": "aceito",
+      "context": "Praticas de juniores no plano antigo (float para dinheiro, :latest).",
+      "decision": "value_cents bigint; toda imagem com tag pinada.",
+      "consequences": "Consistencia financeira e builds reprodutiveis."
+    }
+  ]
+}

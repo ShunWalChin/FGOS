@@ -1,0 +1,223 @@
+name: core-engine
+
+networks:
+  core_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  clickhouse_data:
+  n8n_data:
+
+x-core-app: &core-app
+  build:
+    context: .
+  image: core-engine-python:0.1.0
+  env_file: .env
+  networks: [core_net]
+  restart: unless-stopped
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+x-n8n-env: &n8n-env
+  DB_TYPE: postgresdb
+  DB_POSTGRESDB_HOST: postgres
+  DB_POSTGRESDB_PORT: "5432"
+  DB_POSTGRESDB_DATABASE: ${POSTGRES_DB}
+  DB_POSTGRESDB_USER: ${POSTGRES_USER}
+  DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+  EXECUTIONS_MODE: queue
+  QUEUE_BULL_REDIS_HOST: redis
+  QUEUE_BULL_REDIS_PORT: "6379"
+  QUEUE_BULL_REDIS_PASSWORD: ${REDIS_PASSWORD}
+  N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+  QUEUE_HEALTH_CHECK_ACTIVE: "true"
+  GENERIC_TIMEZONE: America/Sao_Paulo
+
+services:
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    networks: [core_net]
+    ports:
+      - "127.0.0.1:6379:6379"   # local-dev XLEN/lag inspection; remove in production
+    volumes:
+      - redis_data:/data
+    command: >
+      redis-server --appendonly yes
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory 1300mb --maxmemory-policy noeviction
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$${REDIS_PASSWORD}\" ping | grep PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    mem_limit: 1536m
+
+  postgres:
+    image: postgres:16.4-alpine
+    restart: unless-stopped
+    networks: [core_net]
+    ports:
+      - "127.0.0.1:5432:5432"   # local-dev inspection; remove in production
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    command: >
+      postgres -c shared_buffers=1536MB -c effective_cache_size=3GB
+      -c work_mem=32MB -c maintenance_work_mem=256MB -c max_connections=120
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    mem_limit: 5g
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8-alpine
+    restart: unless-stopped
+    networks: [core_net]
+    ports:
+      - "127.0.0.1:8123:8123"   # local-dev BI check (smoke_mvp.py); remove in production
+    environment:
+      CLICKHOUSE_USER: bi
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8123/ping || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    mem_limit: 4g
+
+  migrate-postgres:
+    image: postgres:16.4-alpine
+    profiles: ["migrate"]
+    env_file: .env
+    networks: [core_net]
+    volumes:
+      - ./migrations/postgres:/migrations:ro
+    command: >
+      sh -c 'for f in /migrations/*.sql; do
+      PGPASSWORD="$$POSTGRES_PASSWORD" psql -h postgres -U "$$POSTGRES_USER"
+      -d "$$POSTGRES_DB" -v ON_ERROR_STOP=1 -f "$$f";
+      done'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  migrate-clickhouse:
+    image: clickhouse/clickhouse-server:24.8-alpine
+    profiles: ["migrate"]
+    env_file: .env
+    networks: [core_net]
+    volumes:
+      - ./migrations/clickhouse:/migrations:ro
+    command: >
+      sh -c 'for f in /migrations/*.sql; do
+      clickhouse-client --host clickhouse --user bi --password "$$CLICKHOUSE_PASSWORD"
+      --multiquery < "$$f";
+      done'
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+
+  api:
+    <<: *core-app
+    command: ["core-engine", "api"]
+    ports:
+      - "8000:8000"
+    mem_limit: 1g
+
+  ingest:
+    <<: *core-app
+    command: ["core-engine", "api"]
+    ports:
+      - "3000:8000"
+    mem_limit: 256m
+
+  worker-router:
+    <<: *core-app
+    command: ["core-engine", "worker", "router"]
+    mem_limit: 256m
+
+  worker-messaging:
+    <<: *core-app
+    command: ["core-engine", "worker", "messaging"]
+    mem_limit: 512m
+
+  worker-messaging-flusher:
+    <<: *core-app
+    command: ["core-engine", "worker", "messaging-flusher"]
+    mem_limit: 256m
+
+  worker-social:
+    <<: *core-app
+    command: ["core-engine", "worker", "social"]
+    mem_limit: 512m
+
+  worker-bi:
+    <<: *core-app
+    command: ["core-engine", "worker", "bi"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+    mem_limit: 512m
+
+  n8n-main:
+    image: docker.n8n.io/n8nio/n8n:1.107.4
+    restart: unless-stopped
+    networks: [core_net]
+    ports:
+      - "127.0.0.1:5678:5678"
+    environment:
+      <<: *n8n-env
+      N8N_HOST: ${N8N_HOST}
+      WEBHOOK_URL: ${N8N_WEBHOOK_URL}
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    mem_limit: 768m
+
+  n8n-webhook:
+    image: docker.n8n.io/n8nio/n8n:1.107.4
+    restart: unless-stopped
+    networks: [core_net]
+    command: webhook
+    environment: *n8n-env
+    depends_on:
+      n8n-main:
+        condition: service_started
+    mem_limit: 512m
+
+  n8n-worker:
+    image: docker.n8n.io/n8nio/n8n:1.107.4
+    restart: unless-stopped
+    networks: [core_net]
+    command: worker
+    environment: *n8n-env
+    depends_on:
+      n8n-main:
+        condition: service_started
+    mem_limit: 768m

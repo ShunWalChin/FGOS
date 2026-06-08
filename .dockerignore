@@ -1,0 +1,44 @@
+# Secrets — never bake into image
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.secret
+.seed.json
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Compose & infra (not needed in the app image)
+docker-compose.yml
+docker-compose.override.yml
+.github/
+.github-workflows-pending/
+
+# Heavy docs / KB (not needed at runtime)
+docs/
+neural-base/

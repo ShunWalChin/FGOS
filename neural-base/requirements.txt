@@ -1,0 +1,5 @@
+# Base neural — dependencias (ARM64-friendly)
+sentence-transformers>=3.0.0
+chromadb>=0.5.0
+# torch entra como dependencia transitiva do sentence-transformers;
+# em ARM/CPU instala a roda CPU automaticamente.

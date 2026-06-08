@@ -1,0 +1,80 @@
+{
+  "schema": "core-engine.neural-base/v1",
+  "project": "Project Core-Engine",
+  "exported_at": "2026-06-08",
+  "description": "Export completo da base de conhecimento do projeto em camadas humana, estruturada e vetorial.",
+  "layers": {
+    "human": [
+      "00_MASTER_KNOWLEDGE_BASE.md",
+      "agent_primer.md",
+      "README.md"
+    ],
+    "structured": [
+      "knowledge_graph.json",
+      "facts.jsonl",
+      "decisions_adr.json",
+      "glossary.json"
+    ],
+    "vector_pipeline": [
+      "build_vector_index.py",
+      "query_kb.py",
+      "requirements.txt"
+    ]
+  },
+  "files": [
+    {
+      "name": "00_MASTER_KNOWLEDGE_BASE.md",
+      "bytes": 52937,
+      "sha256_16": "6f34b23daf17da26"
+    },
+    {
+      "name": "README.md",
+      "bytes": 2718,
+      "sha256_16": "7101cb50169e4038"
+    },
+    {
+      "name": "agent_primer.md",
+      "bytes": 3101,
+      "sha256_16": "c5c0b2e82b7ea141"
+    },
+    {
+      "name": "build_vector_index.py",
+      "bytes": 4759,
+      "sha256_16": "ca0128e9a039bc06"
+    },
+    {
+      "name": "decisions_adr.json",
+      "bytes": 3601,
+      "sha256_16": "784a62dfc6d441ed"
+    },
+    {
+      "name": "facts.jsonl",
+      "bytes": 13789,
+      "sha256_16": "8906a309e4d057c8"
+    },
+    {
+      "name": "glossary.json",
+      "bytes": 3121,
+      "sha256_16": "abcf6e3c5cee5b0c"
+    },
+    {
+      "name": "knowledge_graph.json",
+      "bytes": 11905,
+      "sha256_16": "15326f8e67b1b957"
+    },
+    {
+      "name": "query_kb.py",
+      "bytes": 1893,
+      "sha256_16": "8f4e876e4573237f"
+    },
+    {
+      "name": "requirements.txt",
+      "bytes": 210,
+      "sha256_16": "f1834ac58f2008e4"
+    }
+  ],
+  "stats": {
+    "facts": 37,
+    "files": 10
+  }
+}
