@@ -116,6 +116,13 @@ Dev sem Docker e validação: ver [../README.md](../README.md).
 - **Integrar OSS** (Plane/Twenty/Postiz/Evolution/Superset) — mais rápido, mas orquestra 7 apps
   e exige cuidado de licença. Ver [EXTRACTION-INTEGRATION-KB.md](EXTRACTION-INTEGRATION-KB.md).
 
+## 9. Inteligência competitiva
+
+[COMPETITOR-IMPULSE-CRM.md](COMPETITOR-IMPULSE-CRM.md) — engenharia reversa do Impulse CRM (concorrente
+WhatsApp-first com IA), mapeada módulo a módulo para o FGOS, com as lacunas de produto priorizadas
+(follow-ups por silêncio, fila/SLA de atendimento, BANT score, distribuição de atendentes, agenda,
+financeiro). Todas viáveis como novos "plugs" no mesmo barramento de eventos.
+
 ---
 
 Desenvolvido com IA pela **FAT Tech**.
