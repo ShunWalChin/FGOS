@@ -149,11 +149,10 @@ docker stats --no-stream
 Backups off-box não são opcionais numa VPS única: dump diário do Postgres, backup nativo do
 ClickHouse e cópia do AOF do Redis para OCI Object Storage. Ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) §9.
 
-## Licença e atribuição
+## Licença
 
-MIT. FGOS deriva do redesenho Python do projeto **GrowthOS**; o trabalho original de base é de
-Rafael Melga ([github.com/melgarafael](https://github.com/melgarafael)). Consolidação, runtime
-event-driven e identidade FGOS por **Walfredo Figueiredo Neto / FAT Tech**. Ver [LICENSE](LICENSE) e [FGOS.md](FGOS.md).
+MIT © **Walfredo Figueiredo Neto / FAT Tech**. O runtime event-driven e a identidade FGOS são
+trabalho original da FAT Tech. Ver [LICENSE](LICENSE) e [FGOS.md](FGOS.md).
 
 ---
 

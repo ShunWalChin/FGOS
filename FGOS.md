@@ -31,9 +31,8 @@ Este projeto nasceu de uma sequência de iterações de arquitetura, condensadas
    em `src/core_engine`.
 4. **FGOS** — consolidação sob a marca FAT Tech, repositório próprio, fonte única daqui pra frente.
 
-O runtime deriva do redesenho Python do **GrowthOS**. O trabalho original de base é de
-Rafael Melga ([github.com/melgarafael](https://github.com/melgarafael)) sob MIT. Atribuição
-preservada em [LICENSE](LICENSE).
+O runtime event-driven (`src/core_engine`) é **trabalho original da FAT Tech**, escrito do zero a
+partir das decisões de arquitetura consolidadas em `docs/`. Licença MIT — ver [LICENSE](LICENSE).
 
 ## O que está no repositório
 

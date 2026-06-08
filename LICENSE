@@ -3,12 +3,6 @@ MIT License
 FGOS — FAT Tech Growth Operacional System
 Copyright (c) 2026 Walfredo Figueiredo Neto / FAT Tech
 
-This project derives from the Python redesign of "GrowthOS".
-Portions based on original work by Rafael Melga (https://github.com/melgarafael),
-originally licensed under the MIT License. Original copyright is retained below.
-
-Copyright (c) 2024-2026 Rafael Melga
-
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
