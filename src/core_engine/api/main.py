@@ -7,6 +7,7 @@ from fastapi import FastAPI
 
 from core_engine.api.crm import router as crm_router
 from core_engine.api.ingest import router as ingest_router
+from core_engine.api.social import router as social_router
 from core_engine.api.workspaces import router as workspaces_router
 from core_engine.bus import RedisStreamBus
 from core_engine.db import create_session_factory
@@ -36,6 +37,7 @@ def build_app(settings: Settings | None = None, bus: RedisStreamBus | None = Non
     app.include_router(ingest_router)
     app.include_router(workspaces_router)
     app.include_router(crm_router)
+    app.include_router(social_router)
 
     @app.get("/health", tags=["system"])
     async def health() -> dict[str, str]:

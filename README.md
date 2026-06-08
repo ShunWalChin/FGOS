@@ -62,11 +62,11 @@ Regras inegociáveis do barramento (ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE
 
 | Módulo | Referência de mercado | Estado | Tabelas-núcleo |
 |---|---|---|---|
-| **A — Produtividade** | ClickUp / Monday | API + eventos no MVP | `workspaces`, `lists`, `items` (JSONB + `version`) |
-| **D — CRM** | Pipedrive | API + Kanban move (409) no MVP | `pipelines`, `stages`, `deals` (`value_cents`) |
-| **B — Social/Ads** | Hootsuite | fila `SKIP LOCKED` + backoff | `social_accounts`, `posts_queue` |
-| **C — Mensageria/IA** | ManyChat | debounce + IA por API externa | `contacts`, `chat_sessions`, `messages` |
-| **E — BI** | PowerBI | micro-batch → ClickHouse | `events_log` (MergeTree) |
+| **A — Produtividade** | ClickUp / Monday | ✅ API + eventos | `workspaces`, `lists`, `items` (JSONB + `version`) |
+| **D — CRM** | Pipedrive | ✅ API + Kanban move (409) | `pipelines`, `stages`, `deals` (`value_cents`) |
+| **B — Social/Ads** | Hootsuite | ✅ fila `SKIP LOCKED` + backoff por conta + OAuth (dry-run) | `social_accounts`, `posts_queue` |
+| **C — Mensageria/IA** | ManyChat | debounce pronto; IA/state machine pendente | `contacts`, `chat_sessions`, `messages` |
+| **E — BI** | PowerBI | ✅ micro-batch → ClickHouse | `events_log` (MergeTree) |
 
 ## MVP — espinha em 4 comandos
 
@@ -121,10 +121,15 @@ python -m compileall src
 
 | Documento | O que é |
 |---|---|
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | **Fonte da verdade** — EDT completa: contrato de eventos, DDL por módulo, código crítico, API Hell, CQRS, backups, roadmap |
-| [docs/EXTRACTION-INTEGRATION-KB.md](docs/EXTRACTION-INTEGRATION-KB.md) | Rota alternativa de escala: integrar OSS validado (Plane/Twenty/Postiz/Evolution/Superset) em vez de reescrever |
-| [docs/CORE-ENGINE-ARCHITECTURE.md](docs/CORE-ENGINE-ARCHITECTURE.md) | Decisões condensadas do runtime atual |
-| [neural-base/](neural-base/) | Base de conhecimento para agentes de IA (knowledge graph, facts, ADRs, glossário) — alimenta assistentes que trabalham no FGOS |
+| [docs/OVERVIEW.md](docs/OVERVIEW.md) | **Comece aqui** — visão consolidada: arquitetura, módulos, dados, eventos, operação |
+| [docs/API.md](docs/API.md) | Referência de todos os endpoints REST e os eventos que emitem |
+| [docs/EVENTS.md](docs/EVENTS.md) | Catálogo de eventos: produtor → consumidor → payload + idempotência/anti-loop |
+| [docs/MODULE-B-SOCIAL.md](docs/MODULE-B-SOCIAL.md) | Módulo Social/Ads (fase 2): cripto de token, API Hell, OAuth, dry-run vs live |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | **Fonte da verdade** — EDT completa: contrato de eventos, DDL, código crítico, CQRS, backups |
+| [docs/EXTRACTION-INTEGRATION-KB.md](docs/EXTRACTION-INTEGRATION-KB.md) | Rota alternativa de escala: integrar OSS (Plane/Twenty/Postiz/Evolution/Superset) |
+| [docs/CORE-ENGINE-ARCHITECTURE.md](docs/CORE-ENGINE-ARCHITECTURE.md) | Decisões condensadas do runtime |
+| [CHANGELOG.md](CHANGELOG.md) | Histórico por fase do roadmap |
+| [neural-base/](neural-base/) | Base de conhecimento para agentes de IA (knowledge graph, facts, ADRs, glossário) |
 
 ## Roadmap honesto
 
@@ -132,7 +137,7 @@ python -m compileall src
 |---|---|
 | **0** ✅ | Infra + contrato de evento + idempotência + espinha Redis Streams |
 | **1** ✅ (MVP) | Workspace + CRM trocando eventos reais pela fila, com BI espelhado |
-| **2** | Social/Ads: OAuth, backoff por conta, `SKIP LOCKED` |
+| **2** ✅ | Social/Ads: OAuth (scaffolding), backoff por conta, `SKIP LOCKED`, cripto de token |
 | **3** | Mensageria: debounce + IA por API externa + state machine |
 | **4** | BI: dashboards sobre ClickHouse (Superset embarcado ou ECharts) |
 | **5** | Casca white-label + onboarding self-service por agência |

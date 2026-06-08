@@ -61,8 +61,15 @@ O MVP atual segue a primeira rota porque prova a espinha com código que entende
 
 ## Estado atual
 
-Fase 1 entregue: Workspace + CRM trocam eventos reais pela fila, idempotentes e sem loop, com
-espelhamento para o ClickHouse. Próximo: Social/Ads (OAuth + backoff por conta).
+- **Fase 0+1** ✅ — Workspace + CRM trocam eventos reais pela fila, idempotentes e sem loop, com
+  espelhamento para o ClickHouse.
+- **Fase 2** ✅ (estrutural) — Social/Ads: contas OAuth com token cifrado (pgcrypto), agendamento,
+  `worker-social` com `SKIP LOCKED` + backoff por conta + tratamento do "API Hell" (429 pausa conta,
+  401/403 desconecta + cria tarefa), provider em dry-run. Falta: adapters reais por plataforma e
+  troca de token live no callback.
+
+Documentação consolidada em `docs/` (OVERVIEW, API, EVENTS, MODULE-B-SOCIAL) e `CHANGELOG.md`.
+Próximo: fase 3 (Mensageria — IA por API + state machine).
 
 ---
 

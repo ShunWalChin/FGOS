@@ -27,6 +27,23 @@ class Settings(BaseSettings):
     meta_app_secret: str = ""
     meta_verify_token: str = ""
 
+    # Symmetric key used by pgcrypto (pgp_sym_encrypt/decrypt) to keep OAuth
+    # tokens encrypted at rest. Rotate via re-encryption; never log it.
+    token_encryption_key: str = "dev-token-encryption-key-change-me"
+
+    # Social / OAuth (Module B). Per-platform client credentials are optional in
+    # dev: with SOCIAL_LIVE=false the providers run in dry-run (no network calls).
+    social_live: bool = False
+    oauth_redirect_base: str = "http://localhost:8000"
+    meta_client_id: str = ""
+    meta_client_secret: str = ""
+    tiktok_client_id: str = ""
+    tiktok_client_secret: str = ""
+    linkedin_client_id: str = ""
+    linkedin_client_secret: str = ""
+    youtube_client_id: str = ""
+    youtube_client_secret: str = ""
+
     stream_events: str = "stream:events"
     stream_webhooks_meta: str = "stream:webhooks.meta"
     stream_bi: str = "stream:bi.events"
@@ -35,6 +52,8 @@ class Settings(BaseSettings):
     max_event_hops: int = 5
     messaging_debounce_seconds: int = 2
     social_worker_poll_seconds: float = 1.0
+    social_max_attempts: int = 5
+    social_rate_limit_cooldown_seconds: int = 900  # pause an account 15min on 429
     bi_batch_size: int = 500
     bi_flush_seconds: float = 5.0
 
