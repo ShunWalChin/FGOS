@@ -65,8 +65,8 @@ Regras inegociáveis do barramento (ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE
 | **A — Produtividade** | ClickUp / Monday | ✅ API + eventos | `workspaces`, `lists`, `items` (JSONB + `version`) |
 | **D — CRM** | Pipedrive | ✅ API + Kanban move (409) | `pipelines`, `stages`, `deals` (`value_cents`) |
 | **B — Social/Ads** | Hootsuite | ✅ fila `SKIP LOCKED` + backoff por conta + OAuth (dry-run) | `social_accounts`, `posts_queue` |
-| **C — Mensageria/IA** | ManyChat | debounce pronto; IA/state machine pendente | `contacts`, `chat_sessions`, `messages` |
-| **E — BI** | PowerBI | ✅ micro-batch → ClickHouse | `events_log` (MergeTree) |
+| **C — Mensageria/IA** | ManyChat | ✅ debounce + state machine + IA externa + handoff (dry-run) | `contacts`, `chat_sessions`, `messages` |
+| **E — BI** | PowerBI | ✅ micro-batch → ClickHouse + API de leitura + dashboard ECharts | `events_log` (MergeTree) |
 
 ## MVP — espinha em 4 comandos
 
@@ -78,7 +78,8 @@ copy .env.example .env
 
 # 1. infra + migrations
 docker compose --profile migrate up migrate-postgres migrate-clickhouse
-docker compose up -d postgres redis clickhouse api worker-router worker-bi
+docker compose up -d postgres redis clickhouse api worker-router worker-bi `
+  worker-social worker-messaging worker-messaging-flusher
 
 # 2. fixtures de dev (agency, pipeline, stages, workspace, list)
 docker compose exec api fgos seed
@@ -95,6 +96,9 @@ O que o smoke prova:
 - `worker-bi` faz micro-batch para `events_log` no ClickHouse.
 
 Pular checagem do ClickHouse: `python scripts/smoke_mvp.py --no-clickhouse`.
+
+**Dashboard de BI:** depois do smoke, abra `http://localhost:8000/dashboard/` para ver KPIs,
+série temporal, breakdown de eventos e funil CRM (ECharts, lendo direto do ClickHouse).
 
 ## Desenvolvimento local (sem Docker)
 
@@ -125,6 +129,8 @@ python -m compileall src
 | [docs/API.md](docs/API.md) | Referência de todos os endpoints REST e os eventos que emitem |
 | [docs/EVENTS.md](docs/EVENTS.md) | Catálogo de eventos: produtor → consumidor → payload + idempotência/anti-loop |
 | [docs/MODULE-B-SOCIAL.md](docs/MODULE-B-SOCIAL.md) | Módulo Social/Ads (fase 2): cripto de token, API Hell, OAuth, dry-run vs live |
+| [docs/MODULE-C-MESSAGING.md](docs/MODULE-C-MESSAGING.md) | Módulo Mensageria (fase 3): debounce, state machine, IA externa, handoff |
+| [docs/MODULE-E-BI.md](docs/MODULE-E-BI.md) | Módulo BI (fase 4): CQRS, API de leitura ClickHouse, dashboard ECharts |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | **Fonte da verdade** — EDT completa: contrato de eventos, DDL, código crítico, CQRS, backups |
 | [docs/EXTRACTION-INTEGRATION-KB.md](docs/EXTRACTION-INTEGRATION-KB.md) | Rota alternativa de escala: integrar OSS (Plane/Twenty/Postiz/Evolution/Superset) |
 | [docs/CORE-ENGINE-ARCHITECTURE.md](docs/CORE-ENGINE-ARCHITECTURE.md) | Decisões condensadas do runtime |
@@ -138,8 +144,8 @@ python -m compileall src
 | **0** ✅ | Infra + contrato de evento + idempotência + espinha Redis Streams |
 | **1** ✅ (MVP) | Workspace + CRM trocando eventos reais pela fila, com BI espelhado |
 | **2** ✅ | Social/Ads: OAuth (scaffolding), backoff por conta, `SKIP LOCKED`, cripto de token |
-| **3** | Mensageria: debounce + IA por API externa + state machine |
-| **4** | BI: dashboards sobre ClickHouse (Superset embarcado ou ECharts) |
+| **3** ✅ | Mensageria: debounce + state machine + IA por API externa + handoff (dry-run) |
+| **4** ✅ | BI: API de leitura ClickHouse + dashboard ECharts (`/dashboard`) |
 | **5** | Casca white-label + onboarding self-service por agência |
 
 ## Operação

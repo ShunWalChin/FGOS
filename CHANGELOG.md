@@ -5,6 +5,26 @@ roadmap (ver [docs/OVERVIEW.md](docs/OVERVIEW.md) §5).
 
 ## [Unreleased]
 
+### Fase 4 — BI (dashboards sobre ClickHouse)
+- **API de leitura** `/api/bi/{summary,timeseries,breakdown,funnel,health}` consultando **só** o
+  ClickHouse (CQRS), com builders puros (`bi_queries.py`) e binding `{name:Type}` (sem interpolação).
+- **Dashboard ECharts** em `/dashboard` (KPIs, série temporal, breakdown, funil) com identidade FAT Tech.
+- `clickhouse_client.py` compartilhado (worker-bi escreve, api/bi lê).
+- 5 testes de query builders.
+
+### Fase 3 — Mensageria & IA (estrutural)
+- **State machine** de conversa pura e testável (`messaging/flow.py`, `advance`): saudação →
+  qualificação → IA/handoff, com captura de contexto.
+- **IA por API externa** atrás de boundary (`providers/llm.py`): `DryRunLLM` default + `AnthropicLLM`
+  skeleton; roda fora do hot path (no flusher, pós-debounce).
+- **Envio outbound** atrás de boundary (`providers/messenger.py`), dry-run por padrão.
+- **Worker reescrito**: inbound persiste contato/sessão/mensagem (dedupe `provider_msg_id`) +
+  debounce; flusher roda a state machine, chama IA quando preciso, envia, atualiza sessão.
+- **Handoff bot→humano** (`mode=human` silencia o bot) + evento `messaging.session.handoff`.
+- Migration 004 (índices de lookup); eventos `messaging.message.inbound/outbound`,
+  `messaging.session.handoff`. 9 testes novos.
+- **Fix**: Dockerfile copiava `shared-lib/` inexistente (quebrava build) e agora copia `dashboard/`.
+
 ### Fase 2 — Social/Ads (estrutural)
 - **Cripto de token em repouso** via pgcrypto (`pgp_sym_encrypt`/`pgp_sym_decrypt`), chave em
   `TOKEN_ENCRYPTION_KEY`. Tokens nunca retornados pela API.

@@ -67,9 +67,13 @@ O MVP atual segue a primeira rota porque prova a espinha com código que entende
   `worker-social` com `SKIP LOCKED` + backoff por conta + tratamento do "API Hell" (429 pausa conta,
   401/403 desconecta + cria tarefa), provider em dry-run. Falta: adapters reais por plataforma e
   troca de token live no callback.
+- **Fase 3** ✅ (estrutural) — Mensageria: debounce, state machine pura (`messaging/flow.py`), IA por
+  API externa atrás de boundary (`DryRunLLM` default), envio outbound dry-run, handoff bot→humano.
+  Falta: adapters HTTP reais (LLM + Meta Send) e fluxos por agência.
+- **Fase 4** ✅ — BI: API de leitura sobre ClickHouse (CQRS) + dashboard ECharts em `/dashboard`.
 
-Documentação consolidada em `docs/` (OVERVIEW, API, EVENTS, MODULE-B-SOCIAL) e `CHANGELOG.md`.
-Próximo: fase 3 (Mensageria — IA por API + state machine).
+Documentação consolidada em `docs/` (OVERVIEW, API, EVENTS, MODULE-B/C/E) e `CHANGELOG.md`.
+Próximo: fase 5 (casca white-label + onboarding) ou adapters reais (LLM/social/Meta Send).
 
 ---
 

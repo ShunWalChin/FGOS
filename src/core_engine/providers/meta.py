@@ -34,15 +34,15 @@ def extract_inbound_message(payload: dict[str, Any]) -> dict[str, str] | None:
     if not sender_id:
         return None
 
+    channel = value.get("messaging_product", "meta")
     session_key = json.dumps(
-        {
-            "channel": value.get("messaging_product", "meta"),
-            "sender": sender_id,
-        },
+        {"channel": channel, "sender": sender_id},
         sort_keys=True,
     )
     return {
         "session_id": session_key,
+        "channel": str(channel),
+        "sender": str(sender_id),
         "text": str(text),
         "provider_message_id": str(provider_message_id or ""),
     }

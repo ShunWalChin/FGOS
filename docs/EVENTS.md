@@ -26,7 +26,9 @@
 | `social.post.failed` | worker-social | falha inválida/rede (dead-letter ou retry) | `post_id, outcome, error` |
 | `social.account.rate_limited` | worker-social | 429 → pausa a conta | `social_account_id, platform` |
 | `social.account.disconnected` | worker-social | 401/403 → token morto | `social_account_id, platform` |
-| `messaging.session.buffered` | worker-messaging-flusher | debounce drena buffer | `session_id, text` |
+| `messaging.message.inbound` | worker-messaging | mensagem recebida e persistida | `session_id, contact_id, text` |
+| `messaging.message.outbound` | worker-messaging-flusher | bot/IA responde | `session_id, text, ai` |
+| `messaging.session.handoff` | worker-messaging-flusher | bot → humano (live chat) | `session_id, contact_id` |
 
 ## Eventos de ingestão (`stream:webhooks.meta`)
 

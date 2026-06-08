@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#06060e" />
+  <title>FGOS · BI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Rajdhani:wght@400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+  <style>
+    :root {
+      --bg: #06060e; --panel: #0e0e22; --line: #1c1c33;
+      --cyan: #00f0ff; --pink: #ff2d78; --purple: #a855f7; --green: #22c55e;
+      --text: #e2e8f0; --muted: #8892a4;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text);
+           font-family: 'Rajdhani', system-ui, sans-serif; }
+    header { padding: 20px 28px; border-bottom: 1px solid var(--line);
+             display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    h1 { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 20px; margin: 0;
+         background: linear-gradient(90deg, var(--cyan), var(--pink), var(--purple));
+         -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .sub { color: var(--muted); font-family: 'Share Tech Mono', monospace; font-size: 12px; }
+    input { background: #0a0a18; border: 1px solid var(--line); color: var(--text);
+            padding: 8px 12px; border-radius: 8px; font-family: 'Share Tech Mono', monospace;
+            width: 340px; max-width: 60vw; }
+    button { background: var(--cyan); color: #04141a; border: 0; padding: 8px 16px;
+             border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Rajdhani'; }
+    main { padding: 24px 28px; display: grid; gap: 18px; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; }
+    .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+    .kpi .v { font-family: 'Orbitron'; font-size: 26px; font-weight: 700; }
+    .kpi .l { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .06em; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+    .card h2 { font-family: 'Orbitron'; font-size: 13px; font-weight: 600; color: var(--muted);
+               text-transform: uppercase; letter-spacing: .08em; margin: 4px 8px 10px; }
+    .chart { height: 300px; }
+    @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+    footer { color: var(--muted); font-size: 12px; padding: 12px 28px 28px; }
+    .err { color: var(--pink); font-family: 'Share Tech Mono', monospace; padding: 8px 28px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>FGOS · BI</h1>
+    <span class="sub">FAT Tech Growth Operacional System</span>
+    <span style="flex:1"></span>
+    <input id="agency" value="00000000-0000-0000-0000-000000000001" />
+    <button onclick="loadAll()">Atualizar</button>
+  </header>
+  <div id="err" class="err"></div>
+  <main>
+    <section class="kpis" id="kpis"></section>
+    <section class="grid">
+      <div class="card"><h2>Eventos por dia (30d)</h2><div id="ts" class="chart"></div></div>
+      <div class="card"><h2>Tipos de evento</h2><div id="bd" class="chart"></div></div>
+    </section>
+    <section class="card"><h2>Funil CRM</h2><div id="fn" class="chart" style="height:260px"></div></section>
+  </main>
+  <footer>Desenvolvido com IA pela <b>FAT Tech</b> · leitura direta do ClickHouse (CQRS)</footer>
+
+  <script>
+    const AX = { axisLine:{lineStyle:{color:'#2a2a44'}}, axisLabel:{color:'#8892a4'}, splitLine:{lineStyle:{color:'#15152b'}} };
+    const tsChart = echarts.init(document.getElementById('ts'));
+    const bdChart = echarts.init(document.getElementById('bd'));
+    const fnChart = echarts.init(document.getElementById('fn'));
+    window.addEventListener('resize', () => { tsChart.resize(); bdChart.resize(); fnChart.resize(); });
+
+    function agency(){ return document.getElementById('agency').value.trim(); }
+    async function api(path){
+      const r = await fetch(`/api/bi/${path}${path.includes('?')?'&':'?'}agency_id=${agency()}`);
+      if(!r.ok) throw new Error(`${path}: HTTP ${r.status}`);
+      return r.json();
+    }
+    function brl(cents){ return (Number(cents||0)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+
+    async function loadAll(){
+      document.getElementById('err').textContent = '';
+      try {
+        const s = await api('summary');
+        document.getElementById('kpis').innerHTML = [
+          ['Eventos', Number(s.total_events||0).toLocaleString('pt-BR'), 'var(--cyan)'],
+          ['Tipos', s.event_types||0, 'var(--purple)'],
+          ['Valor em deals', brl(s.deal_value_cents), 'var(--green)'],
+          ['Posts publicados', s.posts_published||0, 'var(--pink)'],
+          ['Msgs recebidas', s.msgs_in||0, 'var(--cyan)'],
+          ['Msgs enviadas', s.msgs_out||0, 'var(--purple)'],
+        ].map(([l,v,c]) => `<div class="kpi"><div class="v" style="color:${c}">${v}</div><div class="l">${l}</div></div>`).join('');
+
+        const ts = await api('timeseries?days=30');
+        tsChart.setOption({ grid:{left:48,right:16,top:16,bottom:32}, tooltip:{trigger:'axis'},
+          xAxis:{type:'category', data:ts.map(r=>r.day), ...AX},
+          yAxis:{type:'value', ...AX},
+          series:[{type:'line', smooth:true, data:ts.map(r=>r.events), areaStyle:{color:'rgba(0,240,255,.12)'}, lineStyle:{color:'#00f0ff',width:2}, itemStyle:{color:'#00f0ff'}}] });
+
+        const bd = await api('breakdown');
+        bdChart.setOption({ grid:{left:8,right:16,top:16,bottom:8,containLabel:true}, tooltip:{trigger:'axis'},
+          xAxis:{type:'value', ...AX}, yAxis:{type:'category', data:bd.map(r=>r.event_type).reverse(), ...AX},
+          series:[{type:'bar', data:bd.map(r=>r.n).reverse(), itemStyle:{color:'#a855f7', borderRadius:[0,4,4,0]}}] });
+
+        const fn = await api('funnel');
+        fnChart.setOption({ tooltip:{trigger:'item'},
+          series:[{type:'funnel', left:'10%', right:'10%', label:{color:'#e2e8f0'},
+            color:['#00f0ff','#a855f7','#ff2d78','#22c55e'],
+            data: fn.map(r=>({name:r.event_type, value:Number(r.n)}))}] });
+      } catch(e){ document.getElementById('err').textContent = '⚠ ' + e.message; }
+    }
+    loadAll();
+  </script>
+</body>
+</html>

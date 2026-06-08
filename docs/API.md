@@ -60,6 +60,24 @@ Convenções:
 `platform ∈ {meta, tiktok, linkedin, youtube}`. O token é cifrado em repouso (pgcrypto)
 no insert. A publicação real é feita pelo `worker-social` lendo `posts_queue`.
 
+## Módulo E — BI (leitura só do ClickHouse)
+
+| Método | Rota | Retorna |
+|---|---|---|
+| GET | `/api/bi/summary` | `?agency_id` → KPIs (eventos, tipos, valor em deals, posts, msgs) |
+| GET | `/api/bi/timeseries` | `?agency_id&days` → eventos por dia |
+| GET | `/api/bi/breakdown` | `?agency_id&limit` → contagem por tipo de evento |
+| GET | `/api/bi/funnel` | `?agency_id` → eventos `crm.*` |
+| GET | `/api/bi/health` | liveness do ClickHouse |
+| GET | `/dashboard/` | dashboard ECharts (HTML estático) |
+
+## Módulo C — Mensageria
+
+Sem endpoints REST diretos no MVP: o fluxo é **dirigido por eventos**. Mensagens entram pelo
+`POST /webhooks/meta` (ingest) e são processadas pelos workers `messaging` (persistência +
+debounce) e `messaging-flusher` (state machine + IA + envio). Ver
+[MODULE-C-MESSAGING.md](MODULE-C-MESSAGING.md).
+
 ## Pendente antes de produção
 
 - **Autenticação/autorização:** hoje a API confia no `agency_id` do payload. Antes de expor

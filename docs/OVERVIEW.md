@@ -84,11 +84,12 @@ numérica pelo profile `migrate` do compose.
 | 0 | Infra + envelope + idempotência + espinha | ✅ |
 | 1 | Workspace + CRM trocando eventos + BI espelhado | ✅ (MVP) |
 | 2 | Social/Ads: OAuth scaffolding, cripto de token, SKIP LOCKED, backoff por conta, API Hell | ✅ estrutural (provider em dry-run; adapters reais pendentes) |
-| 3 | Mensageria: debounce + IA externa + state machine | parcial (debounce pronto; IA/state machine pendente) |
-| 4 | BI: dashboards sobre ClickHouse | pendente |
+| 3 | Mensageria: debounce + IA externa + state machine + handoff | ✅ estrutural (LLM/envio em dry-run) |
+| 4 | BI: API de leitura ClickHouse + dashboard ECharts | ✅ |
 | 5 | Casca white-label + onboarding self-service | pendente |
 
-Detalhe da fase 2: [MODULE-B-SOCIAL.md](MODULE-B-SOCIAL.md). Histórico: [../CHANGELOG.md](../CHANGELOG.md).
+Detalhe por módulo: [MODULE-B-SOCIAL.md](MODULE-B-SOCIAL.md), [MODULE-C-MESSAGING.md](MODULE-C-MESSAGING.md),
+[MODULE-E-BI.md](MODULE-E-BI.md). Histórico: [../CHANGELOG.md](../CHANGELOG.md).
 
 ## 6. Rodar
 

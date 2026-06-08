@@ -44,6 +44,14 @@ class Settings(BaseSettings):
     youtube_client_id: str = ""
     youtube_client_secret: str = ""
 
+    # Messaging / IA (Module C). Dry-run by default: no LLM calls, no outbound
+    # network — the whole conversation pipeline runs offline.
+    messaging_live: bool = False        # send real outbound messages (Meta Send API)
+    messaging_llm_live: bool = False    # call a real LLM provider
+    llm_provider: str = "anthropic"     # anthropic | openai | groq
+    llm_model: str = "claude-sonnet-4-5"
+    llm_api_key: str = ""
+
     stream_events: str = "stream:events"
     stream_webhooks_meta: str = "stream:webhooks.meta"
     stream_bi: str = "stream:bi.events"

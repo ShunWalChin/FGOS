@@ -5,11 +5,9 @@ import json
 import logging
 import socket
 import time
-from urllib.parse import unquote, urlparse
-
-import clickhouse_connect
 
 from core_engine.bus import RedisStreamBus
+from core_engine.clickhouse_client import create_clickhouse_client
 from core_engine.db import create_session_factory, session_scope
 from core_engine.events import EventEnvelope
 from core_engine.repository import mark_event_started, record_event_failure
@@ -65,21 +63,6 @@ class ClickHouseEventBatcher:
         )
         self.last_flush = time.monotonic()
         logger.info("flushed clickhouse batch", extra={"rows": len(rows)})
-
-
-def create_clickhouse_client(dsn: str):
-    parsed = urlparse(dsn)
-    scheme = parsed.scheme or "http"
-    database = parsed.path.lstrip("/") or "default"
-    return clickhouse_connect.get_client(
-        interface="https" if scheme == "https" else "http",
-        host=parsed.hostname or "localhost",
-        port=parsed.port or (8443 if scheme == "https" else 8123),
-        username=unquote(parsed.username or "default"),
-        password=unquote(parsed.password or ""),
-        database=database,
-        secure=scheme == "https",
-    )
 
 
 async def run(settings: Settings | None = None) -> None:

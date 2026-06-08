@@ -11,8 +11,8 @@ RUN groupadd -r coreengine \
 
 COPY pyproject.toml README.md ./
 COPY src/ src/
-COPY shared-lib/ shared-lib/
 COPY migrations/ migrations/
+COPY dashboard/ dashboard/
 
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir .
@@ -20,4 +20,4 @@ RUN pip install --no-cache-dir --upgrade pip \
 USER coreengine
 EXPOSE 8000
 
-CMD ["core-engine", "api"]
+CMD ["fgos", "api"]

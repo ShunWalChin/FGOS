@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import os
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
+from core_engine.api.bi import router as bi_router
 from core_engine.api.crm import router as crm_router
 from core_engine.api.ingest import router as ingest_router
 from core_engine.api.social import router as social_router
@@ -38,14 +41,19 @@ def build_app(settings: Settings | None = None, bus: RedisStreamBus | None = Non
     app.include_router(workspaces_router)
     app.include_router(crm_router)
     app.include_router(social_router)
+    app.include_router(bi_router)
 
     @app.get("/health", tags=["system"])
     async def health() -> dict[str, str]:
-        return {"status": "ok", "service": "core-engine"}
+        return {"status": "ok", "service": "fgos"}
 
     @app.get("/api/ping", tags=["system"])
     async def ping() -> dict[str, str]:
         return {"pong": "true"}
+
+    # BI dashboard (ECharts) — served if the directory is present.
+    if os.path.isdir("dashboard"):
+        app.mount("/dashboard", StaticFiles(directory="dashboard", html=True), name="dashboard")
 
     return app
 
