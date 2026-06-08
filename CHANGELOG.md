@@ -5,6 +5,18 @@ roadmap (ver [docs/OVERVIEW.md](docs/OVERVIEW.md) §5).
 
 ## [Unreleased]
 
+### Fase 5 — Auth multi-tenant + onboarding self-service + white-label
+- **Auth stdlib** (`auth.py`): JWT HS256 + senha PBKDF2 (sem PyJWT/passlib). `api/auth.py`
+  (register/login/me), `api/deps.py` (`get_principal` com bypass de dev), CORS no `main.py`.
+- **Onboarding self-service** (`api/onboarding.py`): `POST /api/onboarding/signup` provisiona
+  agência + owner + pipeline/stages/workspace/list numa transação e devolve token (auto-login).
+  `check-slug`, branding público/privado.
+- **White-label**: `agencies.slug/plan/branding` (migration 006); `slug.py` (`slugify`,
+  `merge_branding` puros); casca `onboarding/index.html` que se tema por agência via `?org=slug`.
+- `app_users.password_hash` (migration 005); `fgos seed` cria login dev `dev@fgos.local/fgosdev`.
+- Evento `agency.provisioned`. App FastAPI sobe com 37 rotas (validado via import real).
+- 17 testes novos (auth + slug/branding); **50 testes no total**, todos verdes.
+
 ### Fase 4 — BI (dashboards sobre ClickHouse)
 - **API de leitura** `/api/bi/{summary,timeseries,breakdown,funnel,health}` consultando **só** o
   ClickHouse (CQRS), com builders puros (`bi_queries.py`) e binding `{name:Type}` (sem interpolação).

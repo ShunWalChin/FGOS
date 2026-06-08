@@ -27,6 +27,13 @@ class Settings(BaseSettings):
     meta_app_secret: str = ""
     meta_verify_token: str = ""
 
+    # Auth (web/mobile login). auth_required=false keeps dev/smoke working without
+    # a token (falls back to default_agency_id). Set true in production.
+    auth_secret: str = "dev-auth-secret-change-me"
+    access_token_ttl_seconds: int = 60 * 60 * 12  # 12h
+    auth_required: bool = False
+    cors_origins: str = "http://localhost:5173,http://localhost:8000"
+
     # Symmetric key used by pgcrypto (pgp_sym_encrypt/decrypt) to keep OAuth
     # tokens encrypted at rest. Rotate via re-encryption; never log it.
     token_encryption_key: str = "dev-token-encryption-key-change-me"

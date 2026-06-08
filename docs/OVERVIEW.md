@@ -16,6 +16,7 @@ agências de marketing:
 | **C — Mensageria/IA** | ManyChat | chatbots, live chat, agentes (debounce + LLM externo) |
 | **D — CRM** | Pipedrive | funis Kanban, leads, deals em centavos |
 | **E — BI** | PowerBI | análise consolidada via ClickHouse |
+| **Acesso** | Auth/Onboarding | login JWT multi-tenant + signup self-service white-label |
 
 Cada módulo é independente e **só fala com os outros pela coluna vertebral de eventos** —
 nunca por chamada HTTP direta módulo-a-módulo.
@@ -70,6 +71,7 @@ Catálogo completo de eventos: [EVENTS.md](EVENTS.md). Referência de endpoints:
   `posts_queue` (`status`, `attempts`, `next_attempt_at`, `platform_post_id`, locks)
 - **C:** `contacts`, `chat_sessions`, `messages` (dedupe por `provider_msg_id`)
 - **D:** `pipelines`, `stages`, `deals` (`value_cents`, `version`)
+- **Acesso:** `agencies` (`slug`, `plan`, `branding` jsonb), `app_users` (`password_hash`, `role`)
 - **infra:** `processed_events`, `event_failures`, `worker_heartbeats`
 
 BI (ClickHouse): `events_log` (MergeTree, particionado por mês).
@@ -86,10 +88,12 @@ numérica pelo profile `migrate` do compose.
 | 2 | Social/Ads: OAuth scaffolding, cripto de token, SKIP LOCKED, backoff por conta, API Hell | ✅ estrutural (provider em dry-run; adapters reais pendentes) |
 | 3 | Mensageria: debounce + IA externa + state machine + handoff | ✅ estrutural (LLM/envio em dry-run) |
 | 4 | BI: API de leitura ClickHouse + dashboard ECharts | ✅ |
-| 5 | Casca white-label + onboarding self-service | pendente |
+| 5 | Auth JWT multi-tenant + onboarding self-service + casca white-label | ✅ |
+| 6 | Web App React (SPA operável) + base mobile (Expo) | em andamento |
 
 Detalhe por módulo: [MODULE-B-SOCIAL.md](MODULE-B-SOCIAL.md), [MODULE-C-MESSAGING.md](MODULE-C-MESSAGING.md),
-[MODULE-E-BI.md](MODULE-E-BI.md). Histórico: [../CHANGELOG.md](../CHANGELOG.md).
+[MODULE-E-BI.md](MODULE-E-BI.md), [MODULE-AUTH-ONBOARDING.md](MODULE-AUTH-ONBOARDING.md).
+Histórico: [../CHANGELOG.md](../CHANGELOG.md).
 
 ## 6. Rodar
 

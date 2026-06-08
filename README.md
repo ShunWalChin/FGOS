@@ -67,6 +67,7 @@ Regras inegociáveis do barramento (ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE
 | **B — Social/Ads** | Hootsuite | ✅ fila `SKIP LOCKED` + backoff por conta + OAuth (dry-run) | `social_accounts`, `posts_queue` |
 | **C — Mensageria/IA** | ManyChat | ✅ debounce + state machine + IA externa + handoff (dry-run) | `contacts`, `chat_sessions`, `messages` |
 | **E — BI** | PowerBI | ✅ micro-batch → ClickHouse + API de leitura + dashboard ECharts | `events_log` (MergeTree) |
+| **Acesso** | Auth + Onboarding | ✅ login JWT multi-tenant + signup self-service white-label | `app_users`, `agencies` (slug/branding) |
 
 ## MVP — espinha em 4 comandos
 
@@ -100,6 +101,10 @@ Pular checagem do ClickHouse: `python scripts/smoke_mvp.py --no-clickhouse`.
 **Dashboard de BI:** depois do smoke, abra `http://localhost:8000/dashboard/` para ver KPIs,
 série temporal, breakdown de eventos e funil CRM (ECharts, lendo direto do ClickHouse).
 
+**Onboarding white-label:** abra `http://localhost:8000/onboarding/` para criar uma agência nova
+(signup self-service que provisiona pipeline + workspace + owner e já loga). Login de dev pronto
+após `fgos seed`: `dev@fgos.local` / `fgosdev`. Tema por agência via `/onboarding/?org=<slug>`.
+
 ## Desenvolvimento local (sem Docker)
 
 ```powershell
@@ -131,6 +136,7 @@ python -m compileall src
 | [docs/MODULE-B-SOCIAL.md](docs/MODULE-B-SOCIAL.md) | Módulo Social/Ads (fase 2): cripto de token, API Hell, OAuth, dry-run vs live |
 | [docs/MODULE-C-MESSAGING.md](docs/MODULE-C-MESSAGING.md) | Módulo Mensageria (fase 3): debounce, state machine, IA externa, handoff |
 | [docs/MODULE-E-BI.md](docs/MODULE-E-BI.md) | Módulo BI (fase 4): CQRS, API de leitura ClickHouse, dashboard ECharts |
+| [docs/MODULE-AUTH-ONBOARDING.md](docs/MODULE-AUTH-ONBOARDING.md) | Auth (fase 5): login JWT multi-tenant, onboarding self-service, white-label |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | **Fonte da verdade** — EDT completa: contrato de eventos, DDL, código crítico, CQRS, backups |
 | [docs/EXTRACTION-INTEGRATION-KB.md](docs/EXTRACTION-INTEGRATION-KB.md) | Rota alternativa de escala: integrar OSS (Plane/Twenty/Postiz/Evolution/Superset) |
 | [docs/COMPETITOR-IMPULSE-CRM.md](docs/COMPETITOR-IMPULSE-CRM.md) | Engenharia reversa do concorrente Impulse CRM + mapeamento → FGOS + oportunidades de roadmap |
@@ -147,7 +153,8 @@ python -m compileall src
 | **2** ✅ | Social/Ads: OAuth (scaffolding), backoff por conta, `SKIP LOCKED`, cripto de token |
 | **3** ✅ | Mensageria: debounce + state machine + IA por API externa + handoff (dry-run) |
 | **4** ✅ | BI: API de leitura ClickHouse + dashboard ECharts (`/dashboard`) |
-| **5** | Casca white-label + onboarding self-service por agência |
+| **5** ✅ | Auth JWT multi-tenant + onboarding self-service + casca white-label (`/onboarding`) |
+| **6** | Web App React (SPA operável) + base mobile (Expo) — em andamento |
 
 ## Operação
 

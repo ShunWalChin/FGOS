@@ -6,11 +6,15 @@ from uuid import UUID
 
 from sqlalchemy import text
 
+from core_engine import repository as repo
+from core_engine.auth import hash_password
 from core_engine.db import create_session_factory, session_scope
 from core_engine.settings import Settings, get_settings
 
 SEED_FILE = Path(".seed.json")
 DEFAULT_AGENCY_ID = UUID("00000000-0000-0000-0000-000000000001")
+DEV_EMAIL = "dev@fgos.local"
+DEV_PASSWORD = "fgosdev"
 
 
 async def seed(settings: Settings | None = None) -> dict[str, str]:
@@ -21,12 +25,27 @@ async def seed(settings: Settings | None = None) -> dict[str, str]:
         await session.execute(
             text(
                 """
-                insert into agencies(id, name)
-                values (:id, 'Development Agency')
-                on conflict (id) do nothing
+                insert into agencies(id, name, slug, plan, branding)
+                values (:id, 'Development Agency', 'dev', 'trial',
+                        cast(:branding as jsonb))
+                on conflict (id) do update
+                  set slug = coalesce(agencies.slug, 'dev'),
+                      branding = case when agencies.branding = '{}'::jsonb
+                                      then excluded.branding else agencies.branding end
                 """
             ),
-            {"id": str(DEFAULT_AGENCY_ID)},
+            {
+                "id": str(DEFAULT_AGENCY_ID),
+                "branding": json.dumps(
+                    {
+                        "display_name": "Development Agency",
+                        "primary_color": "#00f0ff",
+                        "secondary_color": "#ff2d78",
+                        "accent_color": "#a855f7",
+                        "logo_url": "",
+                    }
+                ),
+            },
         )
 
         pipeline_id = await _get_or_create(
@@ -75,6 +94,15 @@ async def seed(settings: Settings | None = None) -> dict[str, str]:
             {"workspace_id": workspace_id, "name": "Backlog"},
         )
 
+        user_id = await repo.create_user(
+            session,
+            agency_id=str(DEFAULT_AGENCY_ID),
+            email=DEV_EMAIL,
+            password_hash=hash_password(DEV_PASSWORD),
+            full_name="Dev User",
+            role="owner",
+        )
+
     result = {
         "agency_id": str(DEFAULT_AGENCY_ID),
         "pipeline_id": pipeline_id,
@@ -83,6 +111,8 @@ async def seed(settings: Settings | None = None) -> dict[str, str]:
         "stage_fechado_id": stage_ids["Fechado"],
         "workspace_id": workspace_id,
         "list_id": list_id,
+        "user_id": user_id,
+        "login": f"{DEV_EMAIL} / {DEV_PASSWORD}",
     }
     SEED_FILE.write_text(json.dumps(result, indent=2), encoding="utf-8")
     return result

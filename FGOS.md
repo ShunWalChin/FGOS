@@ -71,9 +71,14 @@ O MVP atual segue a primeira rota porque prova a espinha com código que entende
   API externa atrás de boundary (`DryRunLLM` default), envio outbound dry-run, handoff bot→humano.
   Falta: adapters HTTP reais (LLM + Meta Send) e fluxos por agência.
 - **Fase 4** ✅ — BI: API de leitura sobre ClickHouse (CQRS) + dashboard ECharts em `/dashboard`.
+- **Fase 5** ✅ — Auth JWT multi-tenant (token + senha, só stdlib) + CORS; onboarding self-service
+  (`/onboarding`) que provisiona uma agência inteira e já loga; white-label por agência (slug +
+  branding). App FastAPI valida import com 37 rotas. Falta: aplicar auth em todas as rotas
+  derivando `agency_id` do token, refresh token, rate-limit de login.
 
-Documentação consolidada em `docs/` (OVERVIEW, API, EVENTS, MODULE-B/C/E) e `CHANGELOG.md`.
-Próximo: fase 5 (casca white-label + onboarding) ou adapters reais (LLM/social/Meta Send).
+Documentação consolidada em `docs/` (OVERVIEW, API, EVENTS, MODULE-B/C/E + AUTH-ONBOARDING) e
+`CHANGELOG.md`. **Próximo: fase 6 — Web App React (SPA operável) + base mobile (Expo)** (ainda não
+iniciado). Alternativa: adapters reais (LLM/Meta Send/social).
 
 ---
 

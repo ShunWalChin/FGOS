@@ -29,6 +29,7 @@
 | `messaging.message.inbound` | worker-messaging | mensagem recebida e persistida | `session_id, contact_id, text` |
 | `messaging.message.outbound` | worker-messaging-flusher | bot/IA responde | `session_id, text, ai` |
 | `messaging.session.handoff` | worker-messaging-flusher | bot → humano (live chat) | `session_id, contact_id` |
+| `agency.provisioned` | api (onboarding) | nova agência criada (signup self-service) | `slug, plan, owner_email` |
 
 ## Eventos de ingestão (`stream:webhooks.meta`)
 

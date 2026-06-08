@@ -5,11 +5,14 @@ from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from core_engine.api.auth import router as auth_router
 from core_engine.api.bi import router as bi_router
 from core_engine.api.crm import router as crm_router
 from core_engine.api.ingest import router as ingest_router
+from core_engine.api.onboarding import router as onboarding_router
 from core_engine.api.social import router as social_router
 from core_engine.api.workspaces import router as workspaces_router
 from core_engine.bus import RedisStreamBus
@@ -31,12 +34,23 @@ def build_app(settings: Settings | None = None, bus: RedisStreamBus | None = Non
                 await app.state.bus.close()
 
     app = FastAPI(
-        title="Core-Engine",
-        version="0.1.0",
-        description="Python event-driven backbone for marketing agency operations.",
+        title="FGOS API",
+        version="0.2.0",
+        description="FAT Tech Growth Operacional System — event-driven backend.",
         lifespan=lifespan,
     )
 
+    resolved = settings or get_settings()
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[o.strip() for o in resolved.cors_origins.split(",") if o.strip()],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    app.include_router(auth_router)
+    app.include_router(onboarding_router)
     app.include_router(ingest_router)
     app.include_router(workspaces_router)
     app.include_router(crm_router)
@@ -54,6 +68,10 @@ def build_app(settings: Settings | None = None, bus: RedisStreamBus | None = Non
     # BI dashboard (ECharts) — served if the directory is present.
     if os.path.isdir("dashboard"):
         app.mount("/dashboard", StaticFiles(directory="dashboard", html=True), name="dashboard")
+
+    # White-label onboarding shell (self-service signup).
+    if os.path.isdir("onboarding"):
+        app.mount("/onboarding", StaticFiles(directory="onboarding", html=True), name="onboarding")
 
     return app
 

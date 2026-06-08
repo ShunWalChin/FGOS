@@ -5,7 +5,9 @@
 > `http://localhost:8000/docs` quando o serviço está no ar.
 
 Convenções:
-- `agency_id` é obrigatório (multi-tenant). No MVP vem no corpo/query; **falta auth** (ver §final).
+- Autenticação: `Authorization: Bearer <token>` obtido em `/api/auth/login` ou `/api/onboarding/signup`.
+  Com `AUTH_REQUIRED=false` (dev) as rotas funcionam sem token (caem na agência de dev).
+- `agency_id` é multi-tenant. No MVP ainda vem no corpo/query nas rotas de negócio (hardening: derivar do token).
 - Dinheiro em `value_cents` (inteiro). Datas em ISO-8601 UTC.
 - Tokens de social **nunca** são retornados em respostas.
 
@@ -15,6 +17,23 @@ Convenções:
 |---|---|---|
 | GET | `/health` | liveness do serviço |
 | GET | `/api/ping` | ping simples |
+| GET | `/dashboard/` | dashboard de BI (ECharts) |
+| GET | `/onboarding/` | casca white-label de signup self-service |
+
+## Auth & Onboarding (fase 5)
+
+| Método | Rota | Corpo / Query | Evento |
+|---|---|---|---|
+| POST | `/api/auth/register` | `{agency_id, email, password, full_name?, role?}` | — (retorna token) |
+| POST | `/api/auth/login` | `{email, password}` | — (retorna token) |
+| GET | `/api/auth/me` | Bearer | — |
+| POST | `/api/onboarding/signup` | `{agency_name, email, password, owner_name?, slug?, branding?}` | `agency.provisioned` |
+| GET | `/api/onboarding/check-slug` | `?slug` | — |
+| GET | `/api/agencies/{slug}/branding` | público | — (white-label) |
+| PATCH | `/api/agencies/branding` | Bearer · `{branding}` | — |
+
+`signup` provisiona agência + owner + pipeline/stages/workspace/list numa transação e devolve um
+token de auto-login. Ver [MODULE-AUTH-ONBOARDING.md](MODULE-AUTH-ONBOARDING.md).
 
 ## Ingest (webhooks)
 

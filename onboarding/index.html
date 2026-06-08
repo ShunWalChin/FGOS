@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#06060e" />
+  <title>FGOS · Criar sua agência</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:#06060e; --panel:#0e0e22; --line:#1c1c33;
+      --primary:#00f0ff; --secondary:#ff2d78; --accent:#a855f7;
+      --text:#e2e8f0; --muted:#8892a4;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:
+        radial-gradient(900px 500px at 80% -10%, rgba(168,85,247,.18), transparent),
+        radial-gradient(700px 500px at -10% 110%, rgba(0,240,255,.12), transparent), var(--bg);
+      color:var(--text); font-family:'Rajdhani',system-ui,sans-serif;
+      display:grid; place-items:center; padding:24px; }
+    .card { width:100%; max-width:460px; background:var(--panel);
+      border:1px solid var(--line); border-radius:18px; padding:30px 28px;
+      box-shadow:0 24px 60px rgba(0,0,0,.45); }
+    .brand { display:flex; align-items:center; gap:12px; margin-bottom:6px; }
+    .logo { width:40px; height:40px; border-radius:10px;
+      background:linear-gradient(135deg,var(--primary),var(--accent)); display:grid; place-items:center;
+      font-family:'Orbitron'; font-weight:900; color:#04141a; }
+    .logo img { width:100%; height:100%; border-radius:10px; object-fit:cover; }
+    h1 { font-family:'Orbitron'; font-weight:900; font-size:22px; margin:0;
+      background:linear-gradient(90deg,var(--primary),var(--secondary),var(--accent));
+      -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+    .sub { color:var(--muted); font-family:'Share Tech Mono',monospace; font-size:12px; margin:2px 0 22px; }
+    label { display:block; font-size:13px; color:var(--muted); margin:14px 0 6px; letter-spacing:.04em; }
+    input { width:100%; background:#0a0a18; border:1px solid var(--line); color:var(--text);
+      padding:11px 13px; border-radius:10px; font-family:'Rajdhani'; font-size:15px; }
+    input:focus { outline:none; border-color:var(--primary); }
+    .slug { font-family:'Share Tech Mono',monospace; font-size:12px; color:var(--muted); margin-top:6px; min-height:16px; }
+    button { width:100%; margin-top:22px; background:linear-gradient(90deg,var(--primary),var(--accent));
+      color:#04141a; border:0; padding:13px; border-radius:10px; font-weight:700; font-size:16px;
+      cursor:pointer; font-family:'Rajdhani'; }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    .msg { margin-top:14px; font-family:'Share Tech Mono',monospace; font-size:13px; min-height:18px; }
+    .ok { color:#22c55e; } .err { color:var(--secondary); }
+    .foot { margin-top:20px; text-align:center; color:var(--muted); font-size:12px; }
+    a { color:var(--primary); text-decoration:none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">
+      <div class="logo" id="logo">F</div>
+      <div>
+        <h1 id="title">Crie sua agência no FGOS</h1>
+        <div class="sub" id="subtitle">Onboarding self-service · white-label</div>
+      </div>
+    </div>
+
+    <form id="form">
+      <label for="agency_name">Nome da agência</label>
+      <input id="agency_name" required placeholder="Minha Agência" autocomplete="organization" />
+      <div class="slug" id="slughint"></div>
+
+      <label for="owner_name">Seu nome</label>
+      <input id="owner_name" placeholder="Walfredo" autocomplete="name" />
+
+      <label for="email">Email</label>
+      <input id="email" type="email" required placeholder="voce@agencia.com" autocomplete="email" />
+
+      <label for="password">Senha</label>
+      <input id="password" type="password" required minlength="6" placeholder="mínimo 6 caracteres" autocomplete="new-password" />
+
+      <button type="submit" id="submit">Criar agência e entrar</button>
+      <div class="msg" id="msg"></div>
+    </form>
+
+    <div class="foot">Já tem conta? <a href="/dashboard/">Ir para o dashboard</a></div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const slugify = (s) => (s||'').normalize('NFKD').replace(/[̀-ͯ]/g,'')
+      .replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-+|-+$/g,'').toLowerCase() || 'agencia';
+
+    // White-label: if ?org=slug, theme this shell to that agency's branding.
+    const org = new URLSearchParams(location.search).get('org');
+    async function applyBranding() {
+      if (!org) return;
+      try {
+        const r = await fetch(`/api/agencies/${org}/branding`);
+        if (!r.ok) return;
+        const { name, branding } = await r.json();
+        if (branding) {
+          document.documentElement.style.setProperty('--primary', branding.primary_color || '#00f0ff');
+          document.documentElement.style.setProperty('--secondary', branding.secondary_color || '#ff2d78');
+          document.documentElement.style.setProperty('--accent', branding.accent_color || '#a855f7');
+          if (branding.logo_url) $('logo').innerHTML = `<img src="${branding.logo_url}" alt="">`;
+          if (branding.display_name) { $('logo').textContent = $('logo').querySelector('img') ? '' : (branding.display_name[0]||'F'); }
+        }
+        if (name) { $('title').textContent = `Bem-vindo à ${name}`; $('subtitle').textContent = 'powered by FGOS · white-label'; }
+      } catch (_) {}
+    }
+    applyBranding();
+
+    $('agency_name').addEventListener('input', (e) => {
+      const s = slugify(e.target.value);
+      $('slughint').textContent = e.target.value ? `URL: /onboarding/?org=${s}` : '';
+    });
+
+    $('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      $('submit').disabled = true; $('msg').textContent = 'Criando…'; $('msg').className = 'msg';
+      try {
+        const body = {
+          agency_name: $('agency_name').value.trim(),
+          owner_name: $('owner_name').value.trim() || null,
+          email: $('email').value.trim(),
+          password: $('password').value,
+        };
+        const r = await fetch('/api/onboarding/signup', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.detail || `HTTP ${r.status}`);
+        localStorage.setItem('fgos_token', data.access_token);
+        localStorage.setItem('fgos_agency', JSON.stringify(data.agency));
+        $('msg').className = 'msg ok';
+        $('msg').textContent = `✓ Agência "${data.agency.name}" criada! Redirecionando…`;
+        setTimeout(() => { location.href = data.dashboard_url || '/dashboard/'; }, 1200);
+      } catch (err) {
+        $('msg').className = 'msg err'; $('msg').textContent = '⚠ ' + err.message;
+        $('submit').disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

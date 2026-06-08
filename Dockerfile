@@ -13,6 +13,7 @@ COPY pyproject.toml README.md ./
 COPY src/ src/
 COPY migrations/ migrations/
 COPY dashboard/ dashboard/
+COPY onboarding/ onboarding/
 
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir .
