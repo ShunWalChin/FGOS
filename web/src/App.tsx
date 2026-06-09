@@ -5,6 +5,9 @@ import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Kanban from "./pages/Kanban";
+import Chat from "./pages/Chat";
+import Social from "./pages/Social";
+import Workspace from "./pages/Workspace";
 
 export default function App() {
   return (
@@ -21,6 +24,9 @@ export default function App() {
           >
             <Route path="/" element={<Dashboard />} />
             <Route path="/crm" element={<Kanban />} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/social" element={<Social />} />
+            <Route path="/workspace" element={<Workspace />} />
           </Route>
         </Routes>
       </BrowserRouter>

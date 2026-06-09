@@ -107,7 +107,9 @@ após `fgos seed`: `dev@fgos.local` / `fgosdev`. Tema por agência via `/onboard
 
 ## Web App (SPA operável)
 
-React + Vite + TypeScript em `web/` — login → Dashboard (BI) → CRM Kanban, consumindo a API.
+React + Vite + TypeScript em `web/` — **6 telas** consumindo a API: Login, Dashboard (BI),
+CRM Kanban, Mensageria (inbox + chat), Social/Ads (contas + agendamento) e Workspace. Responsivo
+(drawer no mobile), tema cyber FAT Tech.
 
 ```powershell
 cd web
@@ -169,7 +171,7 @@ python -m compileall src
 | **3** ✅ | Mensageria: debounce + state machine + IA por API externa + handoff (dry-run) |
 | **4** ✅ | BI: API de leitura ClickHouse + dashboard ECharts (`/dashboard`) |
 | **5** ✅ | Auth JWT multi-tenant + onboarding self-service + casca white-label (`/onboarding`) |
-| **6** ✅ | Web App React (login → Dashboard → CRM Kanban), compila de verdade; base mobile pronta |
+| **6** ✅ | Web App React completo (6 telas operáveis + responsivo + UI/UX), compila de verdade; base mobile pronta |
 
 ## Operação
 

@@ -58,6 +58,66 @@ async def _publish(bus: RedisStreamBus, settings: Settings, event: EventEnvelope
     await bus.publish(settings.stream_events, event)
 
 
+@router.get("/workspaces")
+async def list_workspaces(request: Request, agency_id: UUID) -> list[dict[str, Any]]:
+    async with session_scope(_factory(request)) as session:
+        result = await session.execute(
+            text("select id, name, created_at from workspaces where agency_id = :a order by created_at"),
+            {"a": str(agency_id)},
+        )
+        rows = result.mappings().all()
+    return [
+        {"id": str(r["id"]), "name": r["name"], "created_at": r["created_at"].isoformat()}
+        for r in rows
+    ]
+
+
+@router.get("/lists")
+async def list_lists(request: Request, workspace_id: UUID) -> list[dict[str, Any]]:
+    async with session_scope(_factory(request)) as session:
+        result = await session.execute(
+            text(
+                """
+                select l.id, l.name, l.sort_order,
+                       (select count(*) from items i where i.list_id = l.id) as item_count
+                from lists l where l.workspace_id = :w order by l.sort_order
+                """
+            ),
+            {"w": str(workspace_id)},
+        )
+        rows = result.mappings().all()
+    return [
+        {"id": str(r["id"]), "name": r["name"], "sort_order": r["sort_order"], "item_count": r["item_count"]}
+        for r in rows
+    ]
+
+
+@router.get("/items")
+async def list_items(request: Request, list_id: UUID) -> list[dict[str, Any]]:
+    async with session_scope(_factory(request)) as session:
+        result = await session.execute(
+            text(
+                """
+                select id, title, status, fields, due_at, sort_order, updated_at
+                from items where list_id = :l order by sort_order, created_at
+                """
+            ),
+            {"l": str(list_id)},
+        )
+        rows = result.mappings().all()
+    return [
+        {
+            "id": str(r["id"]),
+            "title": r["title"],
+            "status": r["status"],
+            "fields": r["fields"],
+            "due_at": r["due_at"].isoformat() if r["due_at"] else None,
+            "updated_at": r["updated_at"].isoformat() if r["updated_at"] else None,
+        }
+        for r in rows
+    ]
+
+
 @router.post("/workspaces", status_code=status.HTTP_201_CREATED)
 async def create_workspace(payload: WorkspaceIn, request: Request) -> dict[str, str]:
     async with session_scope(_factory(request)) as session:

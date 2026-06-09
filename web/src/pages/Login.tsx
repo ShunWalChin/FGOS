@@ -40,7 +40,7 @@ export default function Login() {
           autoComplete="current-password"
         />
 
-        <button className="btn-primary" disabled={busy} type="submit">
+        <button className="btn-primary block" disabled={busy} type="submit">
           {busy ? "Entrando…" : "Entrar"}
         </button>
         <div className="err">{error}</div>

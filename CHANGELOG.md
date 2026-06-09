@@ -5,6 +5,16 @@ roadmap (ver [docs/OVERVIEW.md](docs/OVERVIEW.md) §5).
 
 ## [Unreleased]
 
+### Fase 6 (cont.) — Frontend completo: todas as telas + UI/UX + responsivo
+- **6 telas**: Login, Dashboard, CRM Kanban, **Mensageria** (inbox + thread + toggle bot/humano),
+  **Social/Ads** (contas + fila + conectar + agendar), **Workspace** (listas + itens + criar).
+- **UI/UX**: tema cyber FAT Tech elevado (gradient mesh, textura de grid, reveals em cascata,
+  micro-interações, pills/badges); **responsivo de verdade** (sidebar→drawer com hambúrguer, grids
+  reflow, chat single-pane no mobile). CSS puro, ~63 KB gzip.
+- **Backend read-API** para o front: `GET /api/workspaces|lists|items`, `/api/contacts`,
+  `/api/chat/sessions(+/messages)`, `PATCH .../mode` → **46 rotas**.
+- Compila: `tsc --noEmit` + `vite build` (44 módulos). 50 testes backend verdes.
+
 ### Fase 6 — Web App (React + Vite + TS)
 - SPA operável em `web/`: login → Dashboard (KPIs + breakdown de BI) → CRM Kanban (colunas=stages,
   cards=deals, mover com optimistic UI + 409, criar deal).

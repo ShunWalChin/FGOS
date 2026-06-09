@@ -90,12 +90,34 @@ no insert. A publicação real é feita pelo `worker-social` lendo `posts_queue`
 | GET | `/api/bi/health` | liveness do ClickHouse |
 | GET | `/dashboard/` | dashboard ECharts (HTML estático) |
 
-## Módulo C — Mensageria
+## Módulo C — Mensageria (read-API + write-path por eventos)
 
-Sem endpoints REST diretos no MVP: o fluxo é **dirigido por eventos**. Mensagens entram pelo
-`POST /webhooks/meta` (ingest) e são processadas pelos workers `messaging` (persistência +
-debounce) e `messaging-flusher` (state machine + IA + envio). Ver
-[MODULE-C-MESSAGING.md](MODULE-C-MESSAGING.md).
+O **processamento** é dirigido por eventos (`POST /webhooks/meta` → workers). A **leitura** para a
+UI tem endpoints REST:
+
+| Método | Rota | Retorna |
+|---|---|---|
+| GET | `/api/contacts` | `?agency_id&limit` → contatos |
+| GET | `/api/chat/sessions` | `?agency_id` → inbox (sessão + label do contato + última msg + modo) |
+| GET | `/api/chat/sessions/{id}/messages` | thread de mensagens |
+| PATCH | `/api/chat/sessions/{id}/mode` | `{mode: bot\|human}` → handoff |
+
+## Módulo A — Produtividade (leitura)
+
+| Método | Rota | Retorna |
+|---|---|---|
+| GET | `/api/workspaces` | `?agency_id` → workspaces |
+| GET | `/api/lists` | `?workspace_id` → listas (com `item_count`) |
+| GET | `/api/items` | `?list_id` → itens |
+
+## Módulo D / B (leitura extra)
+
+| Método | Rota | Retorna |
+|---|---|---|
+| GET | `/api/pipelines` | `?agency_id` → pipelines |
+| GET | `/api/stages` | `?pipeline_id` → stages (colunas do Kanban) |
+
+(Social já expõe `GET /api/social-accounts` e `GET /api/posts`.)
 
 ## Pendente antes de produção
 

@@ -90,6 +90,70 @@ export interface Deal {
   version: number;
   updated_at: string | null;
 }
+export interface Workspace {
+  id: string;
+  name: string;
+  created_at: string;
+}
+export interface ListRow {
+  id: string;
+  name: string;
+  sort_order: number;
+  item_count: number;
+}
+export interface Item {
+  id: string;
+  title: string;
+  status: string;
+  fields: Record<string, unknown>;
+  due_at: string | null;
+  updated_at: string | null;
+}
+export interface Contact {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  phone: string | null;
+  external_ids: Record<string, string>;
+  tags: string[];
+  created_at: string;
+}
+export interface ChatSession {
+  id: string;
+  channel: string;
+  mode: "bot" | "human";
+  contact_id: string;
+  contact_label: string;
+  last_body: string | null;
+  last_direction: "in" | "out" | null;
+  updated_at: string | null;
+}
+export interface Message {
+  id: string;
+  direction: "in" | "out";
+  body: string | null;
+  created_at: string;
+}
+export interface SocialAccount {
+  id: string;
+  platform: string;
+  external_account_id: string;
+  status: string;
+  scopes: string[];
+  expires_at: string | null;
+  rate_limited_until: string | null;
+  updated_at: string | null;
+}
+export interface Post {
+  id: string;
+  social_account_id: string;
+  status: string;
+  scheduled_at: string | null;
+  attempts: number;
+  platform_post_id: string | null;
+  last_error: string | null;
+  published_at: string | null;
+}
 
 const q = (params: Record<string, string | number>): string =>
   "?" +
@@ -122,4 +186,38 @@ export const api = {
     title: string;
     value_cents: number;
   }) => req<{ id: string }>("/api/deals", { method: "POST", body: JSON.stringify(body) }),
+
+  // Workspace
+  workspaces: (agencyId: string) => req<Workspace[]>("/api/workspaces" + q({ agency_id: agencyId })),
+  lists: (workspaceId: string) => req<ListRow[]>("/api/lists" + q({ workspace_id: workspaceId })),
+  items: (listId: string) => req<Item[]>("/api/items" + q({ list_id: listId })),
+  createItem: (body: { list_id: string; agency_id: string; title: string }) =>
+    req<{ id: string }>("/api/items", { method: "POST", body: JSON.stringify(body) }),
+
+  // Messaging / chat
+  contacts: (agencyId: string) => req<Contact[]>("/api/contacts" + q({ agency_id: agencyId })),
+  sessions: (agencyId: string) => req<ChatSession[]>("/api/chat/sessions" + q({ agency_id: agencyId })),
+  messages: (sessionId: string) => req<Message[]>(`/api/chat/sessions/${sessionId}/messages`),
+  setMode: (sessionId: string, mode: "bot" | "human") =>
+    req<{ id: string; mode: string }>(`/api/chat/sessions/${sessionId}/mode`, {
+      method: "PATCH",
+      body: JSON.stringify({ mode }),
+    }),
+
+  // Social
+  socialAccounts: (agencyId: string) =>
+    req<SocialAccount[]>("/api/social-accounts" + q({ agency_id: agencyId })),
+  connectAccount: (body: {
+    agency_id: string;
+    platform: string;
+    external_account_id: string;
+    access_token: string;
+  }) => req<{ id: string }>("/api/social-accounts", { method: "POST", body: JSON.stringify(body) }),
+  posts: (agencyId: string) => req<Post[]>("/api/posts" + q({ agency_id: agencyId, limit: 100 })),
+  schedulePost: (body: {
+    agency_id: string;
+    social_account_id: string;
+    caption: string;
+    scheduled_at: string;
+  }) => req<{ id: string }>("/api/posts", { method: "POST", body: JSON.stringify(body) }),
 };

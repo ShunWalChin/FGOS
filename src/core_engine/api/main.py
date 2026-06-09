@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 from core_engine.api.auth import router as auth_router
 from core_engine.api.bi import router as bi_router
+from core_engine.api.chat import router as chat_router
 from core_engine.api.crm import router as crm_router
 from core_engine.api.ingest import router as ingest_router
 from core_engine.api.onboarding import router as onboarding_router
@@ -55,6 +56,7 @@ def build_app(settings: Settings | None = None, bus: RedisStreamBus | None = Non
     app.include_router(workspaces_router)
     app.include_router(crm_router)
     app.include_router(social_router)
+    app.include_router(chat_router)
     app.include_router(bi_router)
 
     @app.get("/health", tags=["system"])

@@ -34,10 +34,16 @@ web/
 | `/login` | login (dev: `dev@fgos.local`/`fgosdev`) | `POST /api/auth/login` |
 | `/` | Dashboard: KPIs + breakdown de eventos | `GET /api/bi/summary`, `/api/bi/breakdown` |
 | `/crm` | CRM Kanban: colunas = stages, cards = deals, mover com `version` (409), criar deal | `GET /api/pipelines`, `/api/stages`, `/api/deals`, `PATCH /api/deals/{id}/move`, `POST /api/deals` |
+| `/chat` | Mensageria: inbox de sessões + thread de mensagens + toggle bot/humano | `GET /api/chat/sessions`, `/api/chat/sessions/{id}/messages`, `PATCH .../mode` |
+| `/social` | Social/Ads: contas, fila de posts, conectar conta, agendar | `GET /api/social-accounts`, `/api/posts`, `POST /api/social-accounts`, `POST /api/posts` |
+| `/workspace` | Workspace: listas + itens, criar tarefa | `GET /api/workspaces`, `/api/lists`, `/api/items`, `POST /api/items` |
 
-O Kanban move cards com **optimistic UI**: aplica local, chama o backend e, em **409 (conflito de
-versão)**, recarrega a verdade do servidor e avisa — exatamente o contrato de optimistic locking do
-CRM (docs/ARCHITECTURE.md §4-D). O Dashboard degrada com mensagem clara se o ClickHouse estiver fora.
+- **Kanban** move cards com **optimistic UI**: aplica local, chama o backend e, em **409 (conflito
+  de versão)**, recarrega a verdade do servidor e avisa — o contrato de optimistic locking do CRM
+  (docs/ARCHITECTURE.md §4-D).
+- **Chat** alterna `mode` bot↔humano (handoff); no mobile vira single-pane (inbox → thread com voltar).
+- **Social** conecta conta e agenda post (dry-run em dev).
+- Telas degradam com mensagem clara quando a dependência está fora (ex.: Dashboard sem ClickHouse).
 
 ## Autenticação
 
@@ -71,10 +77,18 @@ proxy em prod).
 DOM** na lógica de dados — portáveis para **Expo/React Native** reusando os mesmos tipos da API.
 As telas (`pages/`) são reescritas em componentes nativos; a camada de dados é compartilhada.
 
+## Design
+
+Console operacional cyber/hi-tech da FAT Tech: neon cyan/pink/purple sobre quase-preto, fontes
+Orbitron (display) / Rajdhani (corpo) / Share Tech Mono (dados). Atmosfera com gradient mesh +
+textura de grid; entrada em cascata (fade-up); responsivo de verdade (sidebar vira drawer com
+hambúrguer no mobile, grids reflow, chat single-pane). CSS puro — sem framework, bundle ~63 KB gzip.
+
 ## Estado e pendências
 
-✅ Compila de verdade (`tsc` + `vite build`, 41 módulos / ~57 KB gzip). Login, Dashboard e Kanban
-operáveis contra a API real.
+✅ As **6 telas** (Login, Dashboard, CRM Kanban, Mensageria, Social/Ads, Workspace) compilam de
+verdade (`tsc --noEmit` + `vite build`, 44 módulos) e são operáveis contra a API real, responsivas.
 
-⚠️ Pendente: telas de Mensageria (chat/inbox), Social (contas/posts) e Workspace; drag-and-drop real
-no Kanban (hoje botões ←/→); testes de componente (Vitest); empacotar `dist/` numa imagem/serviço.
+⚠️ Pendente: drag-and-drop real no Kanban (hoje botões ←/→); composer de envio de mensagem (hoje a
+thread é leitura + toggle de modo); CRUD completo de workspaces/contas; testes de componente
+(Vitest); empacotar `dist/` numa imagem/serviço; app mobile Expo reusando `src/lib`.
