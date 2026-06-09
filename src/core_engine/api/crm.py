@@ -65,6 +65,42 @@ async def _publish(bus: RedisStreamBus, settings: Settings, event: EventEnvelope
     await bus.publish(settings.stream_events, event)
 
 
+@router.get("/pipelines")
+async def list_pipelines(request: Request, agency_id: UUID) -> list[dict[str, Any]]:
+    async with session_scope(_factory(request)) as session:
+        result = await session.execute(
+            text("select id, name from pipelines where agency_id = :a order by name"),
+            {"a": str(agency_id)},
+        )
+        rows = result.mappings().all()
+    return [{"id": str(r["id"]), "name": r["name"]} for r in rows]
+
+
+@router.get("/stages")
+async def list_stages(request: Request, pipeline_id: UUID) -> list[dict[str, Any]]:
+    async with session_scope(_factory(request)) as session:
+        result = await session.execute(
+            text(
+                """
+                select id, name, sort_order, is_won, is_lost
+                from stages where pipeline_id = :p order by sort_order
+                """
+            ),
+            {"p": str(pipeline_id)},
+        )
+        rows = result.mappings().all()
+    return [
+        {
+            "id": str(r["id"]),
+            "name": r["name"],
+            "sort_order": r["sort_order"],
+            "is_won": r["is_won"],
+            "is_lost": r["is_lost"],
+        }
+        for r in rows
+    ]
+
+
 @router.post("/pipelines", status_code=status.HTTP_201_CREATED)
 async def create_pipeline(payload: PipelineIn, request: Request) -> dict[str, str]:
     async with session_scope(_factory(request)) as session:

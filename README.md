@@ -105,6 +105,20 @@ série temporal, breakdown de eventos e funil CRM (ECharts, lendo direto do Clic
 (signup self-service que provisiona pipeline + workspace + owner e já loga). Login de dev pronto
 após `fgos seed`: `dev@fgos.local` / `fgosdev`. Tema por agência via `/onboarding/?org=<slug>`.
 
+## Web App (SPA operável)
+
+React + Vite + TypeScript em `web/` — login → Dashboard (BI) → CRM Kanban, consumindo a API.
+
+```powershell
+cd web
+npm install
+npm run dev          # http://localhost:5173  (proxy /api -> :8000)
+npm run build        # type-check (tsc) + bundle de produção em web/dist/
+```
+
+Login de dev: `dev@fgos.local` / `fgosdev`. Detalhes em [docs/MODULE-WEB.md](docs/MODULE-WEB.md).
+A camada de dados (`web/src/lib`) é a base compartilhada para o app mobile (Expo) na sequência.
+
 ## Desenvolvimento local (sem Docker)
 
 ```powershell
@@ -137,6 +151,7 @@ python -m compileall src
 | [docs/MODULE-C-MESSAGING.md](docs/MODULE-C-MESSAGING.md) | Módulo Mensageria (fase 3): debounce, state machine, IA externa, handoff |
 | [docs/MODULE-E-BI.md](docs/MODULE-E-BI.md) | Módulo BI (fase 4): CQRS, API de leitura ClickHouse, dashboard ECharts |
 | [docs/MODULE-AUTH-ONBOARDING.md](docs/MODULE-AUTH-ONBOARDING.md) | Auth (fase 5): login JWT multi-tenant, onboarding self-service, white-label |
+| [docs/MODULE-WEB.md](docs/MODULE-WEB.md) | Web App (fase 6): SPA React+Vite+TS, telas, client tipado, base mobile |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | **Fonte da verdade** — EDT completa: contrato de eventos, DDL, código crítico, CQRS, backups |
 | [docs/EXTRACTION-INTEGRATION-KB.md](docs/EXTRACTION-INTEGRATION-KB.md) | Rota alternativa de escala: integrar OSS (Plane/Twenty/Postiz/Evolution/Superset) |
 | [docs/COMPETITOR-IMPULSE-CRM.md](docs/COMPETITOR-IMPULSE-CRM.md) | Engenharia reversa do concorrente Impulse CRM + mapeamento → FGOS + oportunidades de roadmap |
@@ -154,7 +169,7 @@ python -m compileall src
 | **3** ✅ | Mensageria: debounce + state machine + IA por API externa + handoff (dry-run) |
 | **4** ✅ | BI: API de leitura ClickHouse + dashboard ECharts (`/dashboard`) |
 | **5** ✅ | Auth JWT multi-tenant + onboarding self-service + casca white-label (`/onboarding`) |
-| **6** | Web App React (SPA operável) + base mobile (Expo) — em andamento |
+| **6** ✅ | Web App React (login → Dashboard → CRM Kanban), compila de verdade; base mobile pronta |
 
 ## Operação
 

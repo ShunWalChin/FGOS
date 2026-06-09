@@ -76,9 +76,14 @@ O MVP atual segue a primeira rota porque prova a espinha com código que entende
   branding). App FastAPI valida import com 37 rotas. Falta: aplicar auth em todas as rotas
   derivando `agency_id` do token, refresh token, rate-limit de login.
 
-Documentação consolidada em `docs/` (OVERVIEW, API, EVENTS, MODULE-B/C/E + AUTH-ONBOARDING) e
-`CHANGELOG.md`. **Próximo: fase 6 — Web App React (SPA operável) + base mobile (Expo)** (ainda não
-iniciado). Alternativa: adapters reais (LLM/Meta Send/social).
+- **Fase 6** ✅ — Web App React+Vite+TS em `web/` (login → Dashboard BI → CRM Kanban), consumindo a
+  API; **compila de verdade** (`tsc` + `vite build`). Camada de dados (`web/src/lib`) é a base
+  compartilhada para o app mobile (Expo). Falta: telas de Mensageria/Social/Workspace, DnD real,
+  testes de componente, empacotar `dist/`.
+
+Documentação consolidada em `docs/` (OVERVIEW, API, EVENTS, MODULE-B/C/E + AUTH-ONBOARDING + WEB) e
+`CHANGELOG.md`. **Próximo: app mobile (Expo) reusando `web/src/lib`** ou adapters reais
+(LLM/Meta Send/social) ou as telas restantes do web.
 
 ---
 

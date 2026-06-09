@@ -89,7 +89,7 @@ numérica pelo profile `migrate` do compose.
 | 3 | Mensageria: debounce + IA externa + state machine + handoff | ✅ estrutural (LLM/envio em dry-run) |
 | 4 | BI: API de leitura ClickHouse + dashboard ECharts | ✅ |
 | 5 | Auth JWT multi-tenant + onboarding self-service + casca white-label | ✅ |
-| 6 | Web App React (SPA operável) + base mobile (Expo) | em andamento |
+| 6 | Web App React (login → Dashboard → CRM Kanban) + base mobile | ✅ (SPA compila; telas restantes pendentes) |
 
 Detalhe por módulo: [MODULE-B-SOCIAL.md](MODULE-B-SOCIAL.md), [MODULE-C-MESSAGING.md](MODULE-C-MESSAGING.md),
 [MODULE-E-BI.md](MODULE-E-BI.md), [MODULE-AUTH-ONBOARDING.md](MODULE-AUTH-ONBOARDING.md).

@@ -5,6 +5,15 @@ roadmap (ver [docs/OVERVIEW.md](docs/OVERVIEW.md) §5).
 
 ## [Unreleased]
 
+### Fase 6 — Web App (React + Vite + TS)
+- SPA operável em `web/`: login → Dashboard (KPIs + breakdown de BI) → CRM Kanban (colunas=stages,
+  cards=deals, mover com optimistic UI + 409, criar deal).
+- `lib/api.ts` (client tipado + ApiError + token) e `lib/auth.tsx` (AuthProvider) — base
+  compartilhável com o app mobile (Expo).
+- Backend: novos `GET /api/pipelines` e `GET /api/stages` (necessários para o Kanban) → 39 rotas.
+- **Compila de verdade**: `tsc --noEmit` (sem erros de tipo) + `vite build` (41 módulos, ~57 KB gzip).
+- Tema FAT Tech sem framework de CSS; `node_modules/`/`dist/` fora do git.
+
 ### Fase 5 — Auth multi-tenant + onboarding self-service + white-label
 - **Auth stdlib** (`auth.py`): JWT HS256 + senha PBKDF2 (sem PyJWT/passlib). `api/auth.py`
   (register/login/me), `api/deps.py` (`get_principal` com bypass de dev), CORS no `main.py`.
