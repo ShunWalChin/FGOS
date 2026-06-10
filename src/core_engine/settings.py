@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import lru_cache
 from uuid import UUID
 
 from pydantic import Field
@@ -31,7 +32,7 @@ class Settings(BaseSettings):
     # a token (falls back to default_agency_id). Set true in production.
     auth_secret: str = "dev-auth-secret-change-me"
     access_token_ttl_seconds: int = 60 * 60 * 12  # 12h
-    auth_required: bool = False
+    auth_required: bool = Field(default=True, description="Must be True in production. Set False only for local dev/smoke.")
     cors_origins: str = "http://localhost:5173,http://localhost:8000"
 
     # Symmetric key used by pgcrypto (pgp_sym_encrypt/decrypt) to keep OAuth
@@ -73,5 +74,6 @@ class Settings(BaseSettings):
     bi_flush_seconds: float = 5.0
 
 
+@lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings()

@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import json
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import text
 
+from core_engine.api.deps import Principal, get_principal
 from core_engine.bus import RedisStreamBus
 from core_engine.db import session_scope
 from core_engine.events import Actor, EventEnvelope
@@ -17,7 +19,6 @@ router = APIRouter(prefix="/api", tags=["workspace"])
 
 class WorkspaceIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    agency_id: UUID
     name: str = Field(min_length=1, max_length=200)
 
 
@@ -32,7 +33,6 @@ class ListIn(BaseModel):
 class ItemIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
     list_id: UUID
-    agency_id: UUID
     title: str = Field(min_length=1, max_length=500)
     status: str = "open"
     fields: dict[str, Any] = Field(default_factory=dict)
@@ -59,11 +59,14 @@ async def _publish(bus: RedisStreamBus, settings: Settings, event: EventEnvelope
 
 
 @router.get("/workspaces")
-async def list_workspaces(request: Request, agency_id: UUID) -> list[dict[str, Any]]:
+async def list_workspaces(
+    request: Request,
+    principal: Principal = Depends(get_principal),
+) -> list[dict[str, Any]]:
     async with session_scope(_factory(request)) as session:
         result = await session.execute(
             text("select id, name, created_at from workspaces where agency_id = :a order by created_at"),
-            {"a": str(agency_id)},
+            {"a": str(principal.agency_id)},
         )
         rows = result.mappings().all()
     return [
@@ -119,7 +122,11 @@ async def list_items(request: Request, list_id: UUID) -> list[dict[str, Any]]:
 
 
 @router.post("/workspaces", status_code=status.HTTP_201_CREATED)
-async def create_workspace(payload: WorkspaceIn, request: Request) -> dict[str, str]:
+async def create_workspace(
+    payload: WorkspaceIn,
+    request: Request,
+    principal: Principal = Depends(get_principal),
+) -> dict[str, str]:
     async with session_scope(_factory(request)) as session:
         result = await session.execute(
             text(
@@ -129,13 +136,13 @@ async def create_workspace(payload: WorkspaceIn, request: Request) -> dict[str, 
                 returning id
                 """
             ),
-            {"agency_id": str(payload.agency_id), "name": payload.name},
+            {"agency_id": str(principal.agency_id), "name": payload.name},
         )
         workspace_id = str(result.scalar_one())
 
     event = EventEnvelope(
         event="workspace.created",
-        agency_id=payload.agency_id,
+        agency_id=principal.agency_id,
         actor=Actor(type="user", id="api"),
         data={"workspace_id": workspace_id, "name": payload.name},
     )
@@ -166,7 +173,11 @@ async def create_list(payload: ListIn, request: Request) -> dict[str, str]:
 
 
 @router.post("/items", status_code=status.HTTP_201_CREATED)
-async def create_item(payload: ItemIn, request: Request) -> dict[str, str]:
+async def create_item(
+    payload: ItemIn,
+    request: Request,
+    principal: Principal = Depends(get_principal),
+) -> dict[str, str]:
     async with session_scope(_factory(request)) as session:
         result = await session.execute(
             text(
@@ -178,17 +189,17 @@ async def create_item(payload: ItemIn, request: Request) -> dict[str, str]:
             ),
             {
                 "list_id": str(payload.list_id),
-                "agency_id": str(payload.agency_id),
+                "agency_id": str(principal.agency_id),
                 "title": payload.title,
                 "status": payload.status,
-                "fields": _json_dumps(payload.fields),
+                "fields": json.dumps(payload.fields, ensure_ascii=True, default=str),
             },
         )
         item_id = str(result.scalar_one())
 
     event = EventEnvelope(
         event="workspace.item.created",
-        agency_id=payload.agency_id,
+        agency_id=principal.agency_id,
         actor=Actor(type="user", id="api"),
         data={
             "item_id": item_id,
@@ -215,9 +226,3 @@ async def get_item(item_id: UUID, request: Request) -> dict[str, Any]:
     if not row:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return {k: (str(v) if hasattr(v, "hex") else v) for k, v in dict(row).items()}
-
-
-def _json_dumps(value: dict[str, Any]) -> str:
-    import json
-
-    return json.dumps(value, ensure_ascii=True, default=str)

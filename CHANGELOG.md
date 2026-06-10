@@ -5,6 +5,41 @@ roadmap (ver [docs/OVERVIEW.md](docs/OVERVIEW.md) §5).
 
 ## [Unreleased]
 
+### Fase 7 — Hardening de segurança + CI ativo + qualidade de código
+
+#### Segurança crítica (IDOR eliminado)
+- **IDOR corrigido em todos os módulos**: `agency_id` removido como parâmetro de entrada em todas as
+  rotas REST — agora é sempre derivado do token JWT via `Principal` (`Depends(get_principal)`).
+  Afetava: `GET/POST /workspaces`, `GET/POST /deals`, `GET/POST /posts`, `GET/POST /social-accounts`,
+  `GET /contacts`, `GET /chat/sessions`, `GET /api/bi/*`. Qualquer usuário autenticado podia ler
+  dados de outro tenant passando `agency_id` arbitrário.
+- **`auth_required=True` por default** em `settings.py`: o default anterior (`False`) expunha toda
+  a API sem autenticação se a variável de ambiente fosse esquecida no deploy.
+- **Rate-limit no login** (`POST /api/auth/login`): máximo 10 tentativas por e-mail por 60 segundos
+  via Redis (`rate_limit:login:{email}`). Retorna HTTP 429 com header `Retry-After`.
+
+#### Performance / qualidade
+- **`get_settings()` com `@lru_cache(maxsize=1)`**: elimina parsing repetido do `.env` a cada
+  chamada — importante em carga alta.
+- **`repository.py` refatorado em pacote por domínio** (`repository/`): arquivo monolítico de 724
+  linhas dividido em `base.py`, `social.py`, `auth.py`, `messaging.py`. Zero breaking change — o
+  `__init__.py` re-exporta tudo. Cada módulo < 300 linhas.
+
+#### CI/CD
+- **CI ativado**: arquivo movido de `.github-workflows-pending/` para `.github/workflows/` — o
+  pipeline (lint ruff + compile check + unit tests + gitleaks secret scan) agora roda em todo push.
+
+#### Banco de dados
+- **Migration 007 — índices faltando**: `idx_social_accounts_agency`, `idx_chat_sessions_contact_channel`,
+  `updated_at` em `lists` + índice `idx_lists_workspace_updated`. Elimina full table scans
+  frequentes nas queries de inbox e listagem de contas sociais.
+
+#### Testes
+- **Testes de integração HTTP**: `tests/test_api_auth.py` (login, token, auth_required) e
+  `tests/test_api_multitenancy.py` (isolamento de tenant, IDOR prevention, 401 sem token) usando
+  `httpx.AsyncClient` + `ASGITransport` — zero dependência de banco real.
+- **`asyncio_mode = "auto"`** em `pyproject.toml`.
+
 ### Fase 6 (cont.) — Frontend completo: todas as telas + UI/UX + responsivo
 - **6 telas**: Login, Dashboard, CRM Kanban, **Mensageria** (inbox + thread + toggle bot/humano),
   **Social/Ads** (contas + fila + conectar + agendar), **Workspace** (listas + itens + criar).

@@ -13,6 +13,9 @@ from core_engine.settings import Settings
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
+_LOGIN_RATE_LIMIT = 10       # max attempts
+_LOGIN_RATE_WINDOW = 60      # seconds
+
 
 class RegisterIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -62,6 +65,21 @@ def _issue(settings: Settings, user: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+async def _check_login_rate_limit(request: Request, email: str) -> None:
+    """Raise 429 if this email has exceeded _LOGIN_RATE_LIMIT attempts in the window."""
+    redis = request.app.state.bus.redis
+    key = f"rate_limit:login:{email.lower()}"
+    count = await redis.incr(key)
+    if count == 1:
+        await redis.expire(key, _LOGIN_RATE_WINDOW)
+    if count > _LOGIN_RATE_LIMIT:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Too many login attempts. Try again in {_LOGIN_RATE_WINDOW} seconds.",
+            headers={"Retry-After": str(_LOGIN_RATE_WINDOW)},
+        )
+
+
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(payload: RegisterIn, request: Request) -> dict[str, Any]:
     settings = _settings(request)
@@ -86,6 +104,7 @@ async def register(payload: RegisterIn, request: Request) -> dict[str, Any]:
 
 @router.post("/login")
 async def login(payload: LoginIn, request: Request) -> dict[str, Any]:
+    await _check_login_rate_limit(request, payload.email)
     settings = _settings(request)
     async with session_scope(_factory(request)) as session:
         user = await repo.get_user_by_email(session, email=str(payload.email))
