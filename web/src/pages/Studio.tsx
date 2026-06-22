@@ -8,15 +8,6 @@ import {
 } from "../lib/api";
 import { useAuth } from "../lib/auth";
 
-const inp: React.CSSProperties = {
-  background: "rgba(255,255,255,.04)",
-  border: "1px solid rgba(255,255,255,.12)",
-  borderRadius: 8,
-  color: "inherit",
-  padding: "8px 10px",
-  font: "inherit",
-  width: "100%",
-};
 type Tab = "chatbot" | "integracoes" | "templates";
 const TABS: Array<[Tab, string]> = [
   ["chatbot", "Chatbot"],
@@ -88,30 +79,25 @@ export default function Studio() {
   };
 
   return (
-    <div>
+    <div className="reveal">
       <div className="crumb">Studio de Atendimento · configuração do Módulo C</div>
       <h1 className="h1">Studio de Atendimento</h1>
       {notice && <div className="notice">{notice}</div>}
 
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "8px 0 16px" }}>
+      <div className="tabs">
         {TABS.map(([key, label]) => (
-          <button
-            key={key}
-            className={"pill " + (tab === key ? "cyan" : "")}
-            style={{ cursor: "pointer" }}
-            onClick={() => setTab(key)}
-          >
+          <button key={key} className={"tab" + (tab === key ? " on" : "")} onClick={() => setTab(key)}>
             {label}
           </button>
         ))}
       </div>
 
       {tab === "chatbot" && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }}>
-          <div className="sess" style={{ cursor: "default", display: "grid", gap: 8 }}>
-            <b>Filas</b>
-            <div style={{ display: "flex", gap: 8 }}>
-              <input style={inp} placeholder="Nova fila…" value={qName} onChange={(e) => setQName(e.target.value)} />
+        <div className="split">
+          <div className="panel formstack">
+            <div className="ptitle">Filas</div>
+            <div className="row-actions">
+              <input className="field" placeholder="Nova fila…" value={qName} onChange={(e) => setQName(e.target.value)} />
               <button
                 className="btn-ghost"
                 onClick={() =>
@@ -126,29 +112,28 @@ export default function Studio() {
                 + Fila
               </button>
             </div>
-            <select style={inp} value={selQueue} onChange={(e) => setSelQueue(e.target.value)}>
+            <select className="field" value={selQueue} onChange={(e) => setSelQueue(e.target.value)}>
               <option value="">Selecione a fila…</option>
               {queues.map((qq) => (
-                <option key={qq.id} value={qq.id}>
-                  {qq.name}
-                </option>
+                <option key={qq.id} value={qq.id}>{qq.name}</option>
               ))}
             </select>
-            <b style={{ marginTop: 8 }}>Árvore de opções</b>
+            <div className="field-label" style={{ marginTop: 6 }}>Árvore de opções</div>
             {options.length === 0 && <div className="empty">Sem opções nesta fila.</div>}
             {options.map((o) => (
-              <div key={o.id} className="mono" style={{ fontSize: 12 }}>
-                <span className="pill amber">{o.option}</span> {o.title}
-                <div className="muted" style={{ fontSize: 11 }}>{o.message}</div>
+              <div key={o.id} style={{ borderLeft: "2px solid var(--line-2)", paddingLeft: 10 }}>
+                <span className="pill amber">{o.option}</span>{" "}
+                <span style={{ fontWeight: 600 }}>{o.title}</span>
+                <div className="muted mono" style={{ fontSize: 11 }}>{o.message}</div>
               </div>
             ))}
           </div>
 
-          <div className="sess" style={{ cursor: "default", display: "grid", gap: 8 }}>
-            <b>Nova opção de chatbot</b>
-            <input style={inp} placeholder="Tecla (ex.: 1)" value={oKey} onChange={(e) => setOKey(e.target.value)} />
-            <input style={inp} placeholder="Título (ex.: Falar com vendas)" value={oTitle} onChange={(e) => setOTitle(e.target.value)} />
-            <textarea style={{ ...inp, minHeight: 70 }} placeholder="Mensagem do bot" value={oMsg} onChange={(e) => setOMsg(e.target.value)} />
+          <div className="panel formstack">
+            <div className="ptitle">Nova opção de chatbot</div>
+            <input className="field" placeholder="Tecla (ex.: 1)" value={oKey} onChange={(e) => setOKey(e.target.value)} />
+            <input className="field" placeholder="Título (ex.: Falar com vendas)" value={oTitle} onChange={(e) => setOTitle(e.target.value)} />
+            <textarea className="field" placeholder="Mensagem do bot" value={oMsg} onChange={(e) => setOMsg(e.target.value)} />
             <button
               className="btn-ghost"
               disabled={!selQueue}
@@ -170,23 +155,23 @@ export default function Studio() {
       )}
 
       {tab === "integracoes" && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }}>
-          <div className="sess" style={{ cursor: "default", display: "grid", gap: 8 }}>
-            <b>Nova integração</b>
-            <select style={inp} value={iType} onChange={(e) => setIType(e.target.value)}>
+        <div className="split">
+          <div className="panel formstack">
+            <div className="ptitle">Nova integração</div>
+            <select className="field" value={iType} onChange={(e) => setIType(e.target.value)}>
               {["n8n", "openai", "typebot", "dialogflow"].map((t) => (
                 <option key={t} value={t}>{t}</option>
               ))}
             </select>
-            <input style={inp} placeholder="Nome" value={iName} onChange={(e) => setIName(e.target.value)} />
-            <select style={inp} value={iQueue} onChange={(e) => setIQueue(e.target.value)}>
+            <input className="field" placeholder="Nome" value={iName} onChange={(e) => setIName(e.target.value)} />
+            <select className="field" value={iQueue} onChange={(e) => setIQueue(e.target.value)}>
               <option value="">Fila (opcional)…</option>
               {queues.map((qq) => (
                 <option key={qq.id} value={qq.id}>{qq.name}</option>
               ))}
             </select>
             {iType === "n8n" && (
-              <input style={inp} placeholder="URL do webhook n8n" value={iUrl} onChange={(e) => setIUrl(e.target.value)} />
+              <input className="field" placeholder="URL do webhook n8n" value={iUrl} onChange={(e) => setIUrl(e.target.value)} />
             )}
             <button
               className="btn-ghost"
@@ -208,8 +193,8 @@ export default function Studio() {
               + Integração
             </button>
           </div>
-          <div className="sess" style={{ cursor: "default", display: "grid", gap: 8 }}>
-            <b>Integrações ativas</b>
+          <div className="panel formstack">
+            <div className="ptitle">Integrações ativas</div>
             {integs.length === 0 && <div className="empty">Nenhuma integração.</div>}
             {integs.map((i) => (
               <div key={i.id} className="top">
@@ -222,13 +207,13 @@ export default function Studio() {
       )}
 
       {tab === "templates" && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }}>
-          <div className="sess" style={{ cursor: "default", display: "grid", gap: 8 }}>
-            <b>Novo template</b>
-            <input style={inp} placeholder="Nome" value={tName} onChange={(e) => setTName(e.target.value)} />
-            <input style={inp} placeholder="Atalho (ex.: /oi)" value={tShort} onChange={(e) => setTShort(e.target.value)} />
-            <textarea style={{ ...inp, minHeight: 90 }} value={tBody} onChange={(e) => setTBody(e.target.value)} />
-            <span className="mono muted" style={{ fontSize: 11 }}>Use {"{{name}}"}, {"{{protocol}}"}…</span>
+        <div className="split">
+          <div className="panel formstack">
+            <div className="ptitle">Novo template</div>
+            <input className="field" placeholder="Nome" value={tName} onChange={(e) => setTName(e.target.value)} />
+            <input className="field" placeholder="Atalho (ex.: /oi)" value={tShort} onChange={(e) => setTShort(e.target.value)} />
+            <textarea className="field" value={tBody} onChange={(e) => setTBody(e.target.value)} />
+            <span className="field-label">use {"{{name}}"}, {"{{protocol}}"}…</span>
             <button
               className="btn-ghost"
               onClick={() =>
@@ -244,8 +229,8 @@ export default function Studio() {
               + Template
             </button>
           </div>
-          <div className="sess" style={{ cursor: "default", display: "grid", gap: 8 }}>
-            <b>Templates salvos</b>
+          <div className="panel formstack">
+            <div className="ptitle">Templates salvos</div>
             {templates.length === 0 && <div className="empty">Nenhum template.</div>}
             {templates.map((t) => (
               <div key={t.id} style={{ display: "grid", gap: 4 }}>
@@ -254,12 +239,7 @@ export default function Studio() {
                   {t.shortcut && <span className="pill">{t.shortcut}</span>}
                   <button
                     className="btn-ghost"
-                    onClick={() =>
-                      wrap(async () => {
-                        const r = await api.renderTemplate(t.id, { name: "Wal", protocol: "FAT-001" });
-                        setPreview(r.rendered);
-                      })
-                    }
+                    onClick={() => wrap(async () => setPreview((await api.renderTemplate(t.id, { name: "Wal", protocol: "FAT-001" })).rendered))}
                   >
                     preview
                   </button>
@@ -268,7 +248,7 @@ export default function Studio() {
               </div>
             ))}
             {preview && (
-              <div className="notice" style={{ marginTop: 8 }}>
+              <div className="notice" style={{ borderLeftColor: "var(--green)" }}>
                 <b>Preview:</b> {preview}
               </div>
             )}

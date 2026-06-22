@@ -2,15 +2,6 @@ import { useEffect, useState } from "react";
 import { api, type Caption, type MediaItem } from "../lib/api";
 import { useAuth } from "../lib/auth";
 
-const inp: React.CSSProperties = {
-  background: "rgba(255,255,255,.04)",
-  border: "1px solid rgba(255,255,255,.12)",
-  borderRadius: 8,
-  color: "inherit",
-  padding: "8px 10px",
-  font: "inherit",
-  width: "100%",
-};
 type Tab = "captions" | "midia";
 type Crumb = { id: string | null; name: string };
 
@@ -20,12 +11,10 @@ export default function Biblioteca() {
   const [tab, setTab] = useState<Tab>("captions");
   const [notice, setNotice] = useState("");
 
-  // captions
   const [captions, setCaptions] = useState<Caption[]>([]);
   const [capTitle, setCapTitle] = useState("");
   const [capBody, setCapBody] = useState("");
 
-  // media
   const [path, setPath] = useState<Crumb[]>([{ id: null, name: "Raiz" }]);
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [folderName, setFolderName] = useState("");
@@ -51,35 +40,22 @@ export default function Biblioteca() {
   }, [current]);
 
   return (
-    <div>
+    <div className="reveal">
       <div className="crumb">Biblioteca · conteúdo do Módulo B</div>
       <h1 className="h1">Biblioteca</h1>
       {notice && <div className="notice">{notice}</div>}
 
-      <div style={{ display: "flex", gap: 8, margin: "8px 0 16px" }}>
-        {(["captions", "midia"] as Tab[]).map((k) => (
-          <button
-            key={k}
-            className={"pill " + (tab === k ? "cyan" : "")}
-            style={{ cursor: "pointer" }}
-            onClick={() => setTab(k)}
-          >
-            {k === "captions" ? "Legendas" : "Mídia"}
-          </button>
-        ))}
+      <div className="tabs">
+        <button className={"tab" + (tab === "captions" ? " on" : "")} onClick={() => setTab("captions")}>Legendas</button>
+        <button className={"tab" + (tab === "midia" ? " on" : "")} onClick={() => setTab("midia")}>Mídia</button>
       </div>
 
       {tab === "captions" && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }}>
-          <div className="sess" style={{ cursor: "default", display: "grid", gap: 8 }}>
-            <b>Nova legenda</b>
-            <input style={inp} placeholder="Título" value={capTitle} onChange={(e) => setCapTitle(e.target.value)} />
-            <textarea
-              style={{ ...inp, minHeight: 100 }}
-              placeholder="Conteúdo da legenda… use {{oferta}}"
-              value={capBody}
-              onChange={(e) => setCapBody(e.target.value)}
-            />
+        <div className="split">
+          <div className="panel formstack">
+            <div className="ptitle">Nova legenda</div>
+            <input className="field" placeholder="Título" value={capTitle} onChange={(e) => setCapTitle(e.target.value)} />
+            <textarea className="field" style={{ minHeight: 110 }} placeholder="Conteúdo da legenda… use {{oferta}}" value={capBody} onChange={(e) => setCapBody(e.target.value)} />
             <button
               className="btn-ghost"
               onClick={() =>
@@ -95,8 +71,8 @@ export default function Biblioteca() {
               + Legenda
             </button>
           </div>
-          <div className="sess" style={{ cursor: "default", display: "grid", gap: 8 }}>
-            <b>Legendas salvas</b>
+          <div className="panel formstack">
+            <div className="ptitle">Legendas salvas</div>
             {captions.length === 0 && <div className="empty">Nenhuma legenda.</div>}
             {captions.map((c) => (
               <div key={c.id}>
@@ -109,25 +85,18 @@ export default function Biblioteca() {
       )}
 
       {tab === "midia" && (
-        <div style={{ display: "grid", gap: 12 }}>
-          {/* breadcrumb */}
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+        <div className="formstack">
+          <div className="breadcrumb">
             {path.map((c, idx) => (
               <span key={idx}>
-                <button
-                  className="btn-ghost"
-                  style={{ padding: "2px 8px" }}
-                  onClick={() => setPath((p) => p.slice(0, idx + 1))}
-                >
-                  {c.name}
-                </button>
-                {idx < path.length - 1 && <span className="muted"> / </span>}
+                <button onClick={() => setPath((p) => p.slice(0, idx + 1))}>{c.name}</button>
+                {idx < path.length - 1 && <span className="sep">/</span>}
               </span>
             ))}
           </div>
 
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <input style={{ ...inp, width: 180 }} placeholder="Nova pasta…" value={folderName} onChange={(e) => setFolderName(e.target.value)} />
+          <div className="row-actions">
+            <input className="field" style={{ width: 180 }} placeholder="Nova pasta…" value={folderName} onChange={(e) => setFolderName(e.target.value)} />
             <button
               className="btn-ghost"
               onClick={() =>
@@ -141,19 +110,14 @@ export default function Biblioteca() {
             >
               + Pasta
             </button>
-            <input style={{ ...inp, width: 160 }} placeholder="arquivo.png" value={fileName} onChange={(e) => setFileName(e.target.value)} />
-            <input style={{ ...inp, width: 200 }} placeholder="url do arquivo" value={fileUrl} onChange={(e) => setFileUrl(e.target.value)} />
+            <input className="field" style={{ width: 150 }} placeholder="arquivo.png" value={fileName} onChange={(e) => setFileName(e.target.value)} />
+            <input className="field" style={{ width: 190 }} placeholder="url do arquivo" value={fileUrl} onChange={(e) => setFileUrl(e.target.value)} />
             <button
               className="btn-ghost"
               onClick={() =>
                 wrap(async () => {
                   if (!fileName.trim()) return;
-                  await api.createMedia({
-                    name: fileName.trim(),
-                    is_folder: false,
-                    parent_id: current ?? undefined,
-                    url: fileUrl || undefined,
-                  });
+                  await api.createMedia({ name: fileName.trim(), is_folder: false, parent_id: current ?? undefined, url: fileUrl || undefined });
                   setFileName("");
                   setFileUrl("");
                   setMedia(await api.media(current ?? undefined));
@@ -164,22 +128,18 @@ export default function Biblioteca() {
             </button>
           </div>
 
-          <div className="inbox" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 8 }}>
+          <div className="media-grid">
             {media.length === 0 && <div className="empty">Pasta vazia.</div>}
             {media.map((m) => (
               <button
                 key={m.id}
-                className="sess"
-                style={{ cursor: m.is_folder ? "pointer" : "default", textAlign: "left" }}
+                className="media-tile"
+                style={{ cursor: m.is_folder ? "pointer" : "default" }}
                 onClick={() => m.is_folder && setPath((p) => [...p, { id: m.id, name: m.name }])}
               >
-                <div className="nm ellipsis">
-                  {m.is_folder ? "📁 " : "🖼 "}
-                  {m.name}
-                </div>
-                {!m.is_folder && m.url && (
-                  <div className="muted mono" style={{ fontSize: 10 }}>{m.url}</div>
-                )}
+                <div className="ico">{m.is_folder ? "📁" : "🖼"}</div>
+                <div className="nm ellipsis">{m.name}</div>
+                {!m.is_folder && m.url && <div className="muted mono" style={{ fontSize: 10 }}>{m.url}</div>}
               </button>
             ))}
           </div>
