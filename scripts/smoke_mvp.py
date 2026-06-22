@@ -46,7 +46,6 @@ def main() -> int:
     item_title = f"smoke-{int(time.time())}"
     item_payload = {
         "list_id": seed["list_id"],
-        "agency_id": seed["agency_id"],
         "title": item_title,
         "convert_to_deal": True,
         "pipeline_id": seed["pipeline_id"],

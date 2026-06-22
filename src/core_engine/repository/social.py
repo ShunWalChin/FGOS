@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 
 from sqlalchemy import text
@@ -134,9 +135,9 @@ async def insert_social_account(
                 access_token_enc, refresh_token_enc, expires_at, scopes, status)
             values (
                 :agency_id, :client_id, :platform, :external_account_id,
-                pgp_sym_encrypt(:access_token, :key),
-                case when :refresh_token is null then null
-                     else pgp_sym_encrypt(:refresh_token, :key) end,
+                pgp_sym_encrypt(cast(:access_token as text), :key),
+                case when cast(:refresh_token as text) is null then null
+                     else pgp_sym_encrypt(cast(:refresh_token as text), :key) end,
                 :expires_at, :scopes, 'active')
             on conflict (platform, external_account_id) do update
               set access_token_enc = excluded.access_token_enc,
@@ -192,13 +193,18 @@ async def enqueue_post(
     agency_id: str,
     social_account_id: str,
     payload: str,
-    scheduled_at: str,
+    scheduled_at: datetime,
+    repost_frequency: int | None = None,
+    repost_until: datetime | None = None,
 ) -> str:
     result = await session.execute(
         text(
             """
-            insert into posts_queue(agency_id, social_account_id, payload, scheduled_at)
-            values (:agency_id, :social_account_id, cast(:payload as jsonb), :scheduled_at)
+            insert into posts_queue(
+                agency_id, social_account_id, payload, scheduled_at,
+                repost_frequency, repost_until)
+            values (:agency_id, :social_account_id, cast(:payload as jsonb),
+                    :scheduled_at, :repost_frequency, :repost_until)
             returning id
             """
         ),
@@ -207,9 +213,48 @@ async def enqueue_post(
             "social_account_id": social_account_id,
             "payload": payload,
             "scheduled_at": scheduled_at,
+            "repost_frequency": repost_frequency,
+            "repost_until": repost_until,
         },
     )
     return str(result.scalar_one())
+
+
+async def reschedule_repost(
+    session: AsyncSession,
+    *,
+    post_id: str,
+) -> str | None:
+    """If the just-published post is a recurring repost (repost_frequency set and the next
+    occurrence still falls within repost_until), clone it into a fresh pending row scheduled
+    at now()+frequency. Returns the new post id, or None when the series is over.
+
+    Absorbed from Stackposts (sp_posts.repost_frequency / repost_until). The clone carries
+    payload, account, caption and the repost window so the series self-perpetuates until the
+    deadline passes — no extra worker state required.
+    """
+
+    result = await session.execute(
+        text(
+            """
+            insert into posts_queue(
+                agency_id, social_account_id, payload, scheduled_at,
+                repost_frequency, repost_until, caption_id)
+            select agency_id, social_account_id, payload,
+                   now() + (repost_frequency * interval '1 second'),
+                   repost_frequency, repost_until, caption_id
+            from posts_queue
+            where id = :post_id
+              and repost_frequency is not null
+              and repost_until is not null
+              and now() + (repost_frequency * interval '1 second') <= repost_until
+            returning id
+            """
+        ),
+        {"post_id": post_id},
+    )
+    row = result.first()
+    return str(row[0]) if row else None
 
 
 async def list_posts(

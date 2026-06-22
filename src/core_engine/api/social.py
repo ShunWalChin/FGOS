@@ -37,6 +37,8 @@ class PostIn(BaseModel):
     caption: str = ""
     media_urls: list[str] = Field(default_factory=list)
     scheduled_at: datetime
+    repost_frequency: int | None = None      # seconds between reposts (Stackposts-style)
+    repost_until: datetime | None = None
 
 
 def _settings(request: Request) -> Settings:
@@ -114,7 +116,9 @@ async def schedule_post(
             agency_id=str(principal.agency_id),
             social_account_id=str(payload.social_account_id),
             payload=json.dumps(body, ensure_ascii=True),
-            scheduled_at=payload.scheduled_at.isoformat(),
+            scheduled_at=payload.scheduled_at,
+            repost_frequency=payload.repost_frequency,
+            repost_until=payload.repost_until,
         )
 
     await _bus(request).publish(settings.stream_events, EventEnvelope(
