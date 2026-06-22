@@ -6,6 +6,10 @@ const NAV: Array<[string, string, string]> = [
   ["/", "▣", "Dashboard"],
   ["/crm", "⊞", "CRM Kanban"],
   ["/chat", "✦", "Mensageria"],
+  ["/atendimento", "✉", "Atendimento"],
+  ["/campanhas", "➤", "Campanhas"],
+  ["/studio", "⚙", "Studio"],
+  ["/biblioteca", "▤", "Biblioteca"],
   ["/social", "◈", "Social/Ads"],
   ["/workspace", "☰", "Workspace"],
 ];
