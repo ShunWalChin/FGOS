@@ -64,8 +64,8 @@ Regras inegociáveis do barramento (ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE
 |---|---|---|---|
 | **A — Produtividade** | ClickUp / Monday | ✅ API + eventos | `workspaces`, `lists`, `items` (JSONB + `version`) |
 | **D — CRM** | Pipedrive | ✅ API + Kanban move (409) | `pipelines`, `stages`, `deals` (`value_cents`) |
-| **B — Social/Ads** | Hootsuite | ✅ fila `SKIP LOCKED` + backoff por conta + OAuth (dry-run) | `social_accounts`, `posts_queue` |
-| **C — Mensageria/IA** | ManyChat | ✅ debounce + state machine + IA externa + handoff (dry-run) | `contacts`, `chat_sessions`, `messages` |
+| **B — Social/Ads** | Hootsuite / Stackposts | ✅ fila `SKIP LOCKED` + backoff + OAuth + **repost** + **captions/mídia** | `social_accounts`, `posts_queue`, `captions`, `media_files` |
+| **C — Mensageria/IA** | ManyChat / WhatICket | ✅ debounce + IA + **Atendimento** (tickets/filas/chatbot/n8n) + **Campanhas** + **templates** | `contacts`, `messages`, `tickets`, `queues`, `campaigns` |
 | **E — BI** | PowerBI | ✅ micro-batch → ClickHouse + API de leitura + dashboard ECharts | `events_log` (MergeTree) |
 | **Acesso** | Auth + Onboarding | ✅ login JWT multi-tenant + signup self-service white-label | `app_users`, `agencies` (slug/branding) |
 
@@ -158,6 +158,8 @@ python -m compileall src
 | [docs/EXTRACTION-INTEGRATION-KB.md](docs/EXTRACTION-INTEGRATION-KB.md) | Rota alternativa de escala: integrar OSS (Plane/Twenty/Postiz/Evolution/Superset) |
 | [docs/COMPETITOR-IMPULSE-CRM.md](docs/COMPETITOR-IMPULSE-CRM.md) | Engenharia reversa do concorrente Impulse CRM + mapeamento → FGOS + oportunidades de roadmap |
 | [docs/CORE-ENGINE-ARCHITECTURE.md](docs/CORE-ENGINE-ARCHITECTURE.md) | Decisões condensadas do runtime |
+| [docs/REVERSE-ENGINEERING-KB.md](docs/REVERSE-ENGINEERING-KB.md) | RE de 6 SaaS (WhatICket/Stackposts/WASender) → mapa de absorção p/ FGOS |
+| [docs/ATENDIMENTO-INTEGRATION-REPORT.md](docs/ATENDIMENTO-INTEGRATION-REPORT.md) | Entrega Atendimento + Fases B/C (ADR, code-review, process-doc, tech-debt) |
 | [CHANGELOG.md](CHANGELOG.md) | Histórico por fase do roadmap |
 | [neural-base/](neural-base/) | Base de conhecimento para agentes de IA (knowledge graph, facts, ADRs, glossário) |
 
@@ -172,6 +174,11 @@ python -m compileall src
 | **4** ✅ | BI: API de leitura ClickHouse + dashboard ECharts (`/dashboard`) |
 | **5** ✅ | Auth JWT multi-tenant + onboarding self-service + casca white-label (`/onboarding`) |
 | **6** ✅ | Web App React completo (6 telas operáveis + responsivo + UI/UX), compila de verdade; base mobile pronta |
+| **7** ✅ | Hardening IDOR + rate-limit login + CI ativo |
+| **8** ✅ | **Atendimento** (Ticket/Queue/Chatbot/Integração n8n) — absorvido do WhatICket |
+| **9** ✅ | **Campanhas** (bulk + rotação anti-ban) + worker de disparo |
+| **10** ✅ | **Templates** / quick replies |
+| **11** ✅ | **Scheduler social** (repost) + biblioteca de captions/mídia — absorvido do Stackposts |
 
 ## Operação
 

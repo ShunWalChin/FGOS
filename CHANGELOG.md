@@ -5,6 +5,40 @@ roadmap (ver [docs/OVERVIEW.md](docs/OVERVIEW.md) §5).
 
 ## [Unreleased]
 
+### Fases 8–11 — Absorção de SaaS de referência (WhatICket / Stackposts / WASender)
+
+> Engenharia reversa de 6 sistemas → reescrita original no runtime event-driven.
+> Ver [docs/REVERSE-ENGINEERING-KB.md](docs/REVERSE-ENGINEERING-KB.md) e
+> [docs/ATENDIMENTO-INTEGRATION-REPORT.md](docs/ATENDIMENTO-INTEGRATION-REPORT.md).
+
+#### Fase 8 — Atendimento (multi-agente) — absorvido do WhatICket
+- Tabelas `tickets`, `queues`, `user_queues`, `queue_options` (árvore de chatbot),
+  `queue_integrations` (n8n/OpenAI/Typebot), `ticket_traking` (auditoria). Migration `008`.
+- API `/api/tickets`, `/api/queues`, `/api/queues/{id}/options`, `/api/queue-integrations`.
+  Eventos `messaging.ticket.*` e `messaging.integration.dispatched`. Tela SPA **Atendimento**.
+
+#### Fase 9 — Campanhas (bulk) — absorvido do WhatICket/WASender
+- `contact_lists`, `contact_list_items`, `campaigns`, `campaign_shipping`. Migration `009`.
+- Worker `worker-campaigns` (dry-run, `SKIP LOCKED`) com **rotação de mensagens** (anti-ban) e
+  render `{{variáveis}}`. Eventos `messaging.campaign.{started,sent,completed}`. Tela SPA **Campanhas**.
+
+#### Fase 10 — Templates / quick replies
+- `message_templates` com render `{{var}}`. API `/api/templates` (+ `/render`). Migration `010`.
+
+#### Fase 11 — Scheduler social + biblioteca — absorvido do Stackposts
+- `captions`, `media_files` (pastas), `posts_queue.repost_frequency/repost_until`. Migration `011`.
+- Repost worker re-enfileira a série até o deadline (`social.post.reposted`). API `/api/captions`,
+  `/api/media`. Telas SPA **Studio** (chatbot/integrações/templates) e **Biblioteca** (captions/mídia).
+
+#### Correções de bugs (debug)
+- `insert_social_account`: `pgp_sym_encrypt` com `AmbiguousParameterError` quando `refresh_token`
+  é NULL → `cast(... as text)` nas duas ocorrências.
+- `enqueue_post`: `scheduled_at`/`repost_until` agora passados como `datetime` (string ISO falhava no
+  bind `timestamptz` do asyncpg). O caminho do scheduler social nunca tinha sido exercido E2E.
+- Campanha com lista vazia não fica mais presa em `running` (vai direto a `done`).
+- Débitos: ownership cross-tenant na escrita de tickets (D1); `redis>=5.0,<6` pinado (D2);
+  `smoke_mvp.py` sem `agency_id` (D3) — agora passa.
+
 ### Fase 7 — Hardening de segurança + CI ativo + qualidade de código
 
 #### Segurança crítica (IDOR eliminado)
