@@ -42,6 +42,7 @@ services:
   redis:
     image: redis:7.4-alpine
     restart: unless-stopped
+    env_file: .env
     networks: [core_net]
     ports:
       - "127.0.0.1:6379:6379"   # local-dev XLEN/lag inspection; remove in production
@@ -97,7 +98,7 @@ services:
         soft: 262144
         hard: 262144
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8123/ping || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8123/ping || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5

@@ -113,8 +113,13 @@ async def seed(settings: Settings | None = None) -> dict[str, str]:
         "list_id": list_id,
         "user_id": user_id,
         "login": f"{DEV_EMAIL} / {DEV_PASSWORD}",
+        "seed_file": str(SEED_FILE),
+        "seed_file_written": "true",
     }
-    SEED_FILE.write_text(json.dumps(result, indent=2), encoding="utf-8")
+    try:
+        SEED_FILE.write_text(json.dumps(result, indent=2), encoding="utf-8")
+    except OSError:
+        result["seed_file_written"] = "false"
     return result
 
 

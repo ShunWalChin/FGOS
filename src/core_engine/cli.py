@@ -21,7 +21,10 @@ def seed() -> None:
     result = asyncio.run(seed_module.seed())
     for key, value in result.items():
         typer.echo(f"{key}={value}")
-    typer.echo(f"\nwrote {seed_module.SEED_FILE}")
+    if result.get("seed_file_written") == "true":
+        typer.echo(f"\nwrote {result.get('seed_file', str(seed_module.SEED_FILE))}")
+    else:
+        typer.echo(f"\nskipped writing {seed_module.SEED_FILE} (not writable)")
 
 
 @cli.command()
