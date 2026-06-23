@@ -29,6 +29,21 @@
     "Fair-code": "Licenca do n8n (Sustainable Use): self-host permitido, revenda como SaaS concorrente nao.",
     "API Hell": "Conjunto de dores das APIs sociais: rate limit 429, expiracao de OAuth e breaking changes.",
     "Cascading Failure": "Falha de um componente que derruba outros; mitigada por mem_limit e isolamento.",
-    "Marketing DevOps": "Filosofia de operar o stack de marketing como infraestrutura versionada e orquestrada."
+    "Marketing DevOps": "Filosofia de operar o stack de marketing como infraestrutura versionada e orquestrada.",
+    "TomikCRM / Futura IA": "Blueprint competitivo observado em 2026-06-23 para CRM WhatsApp-first com IA, usado como referencia funcional do FGOS, nao como dependencia tecnica.",
+    "BANT": "Framework de qualificacao comercial: Budget, Authority, Need e Timeline. No TomikCRM aparece como score 0/4 e temperatura Frio/Morno/Quente.",
+    "Handoff IA-Hibrido-Humano": "Modo operacional de conversa que alterna atendimento automatico, assistido e humano; deve gerar evento e auditoria no FGOS.",
+    "Follow-up por silencio": "Automacao disparada quando uma conversa fica sem resposta por uma janela configurada; valida worker e scheduler de follow-ups no FGOS.",
+    "Sequencia de follow-up": "Cadencia programada de mensagens ou acoes comerciais, reutilizavel por estrategia e acompanhada por status.",
+    "WABA": "WhatsApp Business API oficial da Meta, usada para templates e mensagens com regras de janela e aprovacao.",
+    "WhatsApp QR / unofficial_qr": "Canal WhatsApp nao oficial via QR Code, util para operacao com risco maior e regras diferentes de broadcast.",
+    "Atendente": "Usuario operacional que assume conversas; pode ter limite simultaneo, status de presenca e politicas de distribuicao.",
+    "Round-robin": "Politica de distribuicao que alterna conversas entre atendentes elegiveis de forma balanceada.",
+    "KnowledgeBase de produto": "Base RAG por agencia para agentes responderem clientes; separada da neural-base de engenharia deste repositorio.",
+    "TrainingQA": "Par pergunta-resposta usado para treinar ou ajustar comportamento do agente de IA por organizacao.",
+    "Agent Runtime": "Camada de configuracao e execucao de agentes de IA; no FGOS deve ser plug do barramento, nao substituto do Event Spine.",
+    "WhatsAppTemplate": "Template de mensagem, geralmente aprovado pela Meta, usado em disparos WABA e campanhas outbound.",
+    "Appointment": "Agendamento comercial ou operacional, potencialmente sincronizado com Google Calendar e ligado a lead, cliente, colaborador e produto.",
+    "Catalogo comercial": "Produtos e servicos vendidos por humanos ou agentes, fonte para CRM, agenda, financeiro e BI."
   }
 }

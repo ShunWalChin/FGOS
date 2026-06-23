@@ -27,12 +27,16 @@ from core_engine.settings import Settings, get_settings
 
 
 def build_app(settings: Settings | None = None, bus: RedisStreamBus | None = None) -> FastAPI:
+    resolved = settings or get_settings()
+    resolved_bus = bus or RedisStreamBus.from_url(resolved.redis_url)
+    session_factory = create_session_factory(resolved.database_url)
+
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        app.state.settings = settings or get_settings()
-        app.state.bus = bus or RedisStreamBus.from_url(app.state.settings.redis_url)
+        app.state.settings = resolved
+        app.state.bus = resolved_bus
         app.state.owns_bus = bus is None
-        app.state.session_factory = create_session_factory(app.state.settings.database_url)
+        app.state.session_factory = session_factory
         try:
             yield
         finally:
@@ -46,7 +50,11 @@ def build_app(settings: Settings | None = None, bus: RedisStreamBus | None = Non
         lifespan=lifespan,
     )
 
-    resolved = settings or get_settings()
+    app.state.settings = resolved
+    app.state.bus = resolved_bus
+    app.state.owns_bus = bus is None
+    app.state.session_factory = session_factory
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[o.strip() for o in resolved.cors_origins.split(",") if o.strip()],

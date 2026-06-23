@@ -26,6 +26,11 @@ SaaS modular para agência de marketing unificando produtividade (ClickUp), soci
 ## Stack OSS por módulo (rodar como serviço)
 - Workspace → makeplane/plane (AGPL) · CRM → twentyhq/twenty (AGPL, MCP) · Social → gitroomhq/postiz-app (AGPL, nó n8n) · WhatsApp → EvolutionAPI/evolution-api (Apache, eventos NATS) · Chatbot → typebot.io (AGPL) · Live chat → chatwoot/chatwoot (fork white-label) · BI → apache/superset (Apache) sobre ClickHouse · Orquestrador → n8n (fair-code) ou activepieces (MIT, se embutir).
 
+## Inteligência competitiva TomikCRM / Futura IA
+TomikCRM (Futura IA - CRM) é blueprint funcional observado, não dependência. Ele valida a visão WhatsApp-first com IA: Chat ao Vivo com fila/SLA e modos IA-Híbrido-Humano, follow-ups por silêncio/sequências, agent runtime, treinamento/RAG por organização, canais WABA/QR/IG/FB/Telegram, atendentes com round-robin, CRM Kanban com BANT/temperatura, agenda, clientes, financeiro e produtos.
+
+Prioridades derivadas para FGOS: P0 fila/SLA de atendimento + follow-ups; P1 BANT/classificação por IA + templates WhatsApp/broadcast + RAG de produto; P2 Agenda/Google Calendar + Clientes + Financeiro/Produtos + builder visual de agentes. Tudo deve entrar como plug no barramento, com `agency_id`, idempotência, anti-loop e dinheiro em centavos.
+
 ## O que construímos (não existe pronto)
 Control Plane (modelo canônico + `app_entity_map` + provisionamento), Event Spine (ingest + adapters + workers), SSO/OIDC (Authentik), BI embarcado (guest tokens), casca white-label.
 

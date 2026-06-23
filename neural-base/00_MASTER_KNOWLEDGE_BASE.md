@@ -1016,3 +1016,65 @@ Não comece pela mensageria. Comece provando o ciclo **provisionar → evento �
 
 ### TL;DR para o time júnior
 Não cole o código deles no nosso. **Suba os apps oficiais, dê um login só (SSO), e escreva só a cola**: o Control Plane (quem é quem), o Event Spine (todo mundo fala o mesmo envelope) e a casca white-label. Postiz já fala n8n, Twenty já fala MCP, Evolution já fala NATS — metade da cola é configuração, não código.
+
+---
+
+# PARTE III — Inteligência Competitiva TomikCRM / Futura IA
+
+> Atualização incorporada em 2026-06-23 a partir de payload observado do TomikCRM (Futura IA - CRM).
+> O anexo raw e a versão JSON normalizada estão em `neural-base/sources/`. O documento humano
+> completo está em `docs/COMPETITOR-TOMIKCRM-FUTURA-IA.md`.
+
+## 1. Leitura central
+
+TomikCRM/Futura IA valida, em produto real, a tese do FGOS: agência/operador precisa de CRM,
+mensageria WhatsApp-first, IA, follow-ups, automação, agenda, financeiro, catálogo e BI em um
+ecossistema multi-tenant. Para o FGOS, isto é **blueprint funcional**, não dependência técnica.
+
+Regra de arquitetura preservada: cada lacuna virá como plug no barramento de eventos, com
+`agency_id`, envelope canônico, idempotência, anti-loop e dinheiro em centavos.
+
+## 2. Stack observada
+
+- Frontend: React SPA, Vite, client-side routing, Signals (`preact/signals`), design system próprio,
+  Phosphor Icons, charts, Sentry React 8.55.2, GTM customizado e Supabase Realtime/WebSockets.
+- Backend: API `https://tomikcrm.onrender.com/api/v2`, Supabase PostgreSQL via PostgREST/RPC,
+  Supabase Auth, Storage, edge functions, OpenAI, ElevenLabs, n8n, Stripe, Meta APIs, Telegram e
+  Google Calendar.
+- Tenancy: `organization_id` + `memberships`, roles `owner`, `admin`, `attendant`.
+
+## 3. Módulos validados
+
+| Grupo | Módulos observados |
+|---|---|
+| IA & Atendimento | TomikAI/Estrategista, Chat ao Vivo, Contatos/Mensageria, Follow-ups |
+| Automação | Agentes de IA, Sistema de Treinamento, Base de Conhecimento/RAG |
+| Comunicação | Conexões, Atendentes, Disparo WhatsApp |
+| CRM | Leads Kanban, Leads Lista, Agenda, Clientes, Agendamentos Concluídos |
+| Gestão | Colaboradores, Financeiro, Produtos e Serviços, Funil de Métricas |
+| Suporte | FAQ & Ajuda, Notificações, Configurações |
+
+## 4. Roadmap derivado para FGOS
+
+1. **P0 — Fila/SLA de atendimento + atendentes:** eventos `chat.queued`, `chat.assigned`,
+   `chat.sla_breached`, políticas manual/auto-captura/round-robin/híbrida.
+2. **P0 — Follow-ups por silêncio e sequências:** worker observa mensagens, agenda cadências e emite
+   `followup.scheduled`, `followup.executed`, `followup.cancelled`, `followup.failed`.
+3. **P1 — BANT + temperatura + classificação por IA:** enriquecer `deals` com JSONB/generated
+   columns sem quebrar optimistic lock do Kanban.
+4. **P1 — Templates WhatsApp + broadcast:** estender a fila social/mensageria para HSM e texto livre
+   por canal, com dedupe por provider id.
+5. **P1 — RAG de produto por agência:** entidades `knowledge_bases`, `documents`, `chunks`,
+   `training_qas`, separadas da `neural-base` de engenharia.
+6. **P2 — Agenda, Clientes, Financeiro e Produtos:** fechar jornada lead → consulta → cliente →
+   receita, sempre com eventos e valores em centavos.
+7. **P2 — Agent Runtime visual:** builder só depois dos contratos de execução, providers e eventos
+   estarem sólidos.
+
+## 5. Entidades novas ou enriquecidas
+
+TomikCRM observa `Lead`, `MessagingConversation`, `Contact`, `FollowUp`, `FollowUpSequenceRun`,
+`AIAgent`, `KnowledgeBase`, `TrainingQA`, `Attendant`, `Channel`, `Appointment`, `Client`,
+`Collaborator`, `Financial`, `Product` e `WhatsAppTemplate`. No FGOS, estas entidades devem ser
+traduzidas para tabelas tenant-scoped e eventos canônicos, reaproveitando `contacts`, `messages`,
+`deals`, `pipelines`, `stages`, `social_accounts` e `posts_queue` onde fizer sentido.

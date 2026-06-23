@@ -64,6 +64,14 @@
       "context": "Praticas de juniores no plano antigo (float para dinheiro, :latest).",
       "decision": "value_cents bigint; toda imagem com tag pinada.",
       "consequences": "Consistencia financeira e builds reprodutiveis."
+    },
+    {
+      "id": "ADR-009",
+      "title": "TomikCRM/Futura IA como blueprint funcional, nao dependencia",
+      "status": "aceito",
+      "context": "O payload observado do TomikCRM/Futura IA mostra um produto concorrente com CRM, atendimento WhatsApp-first, follow-ups, agentes, RAG, agenda, financeiro e catalogo.",
+      "decision": "Usar TomikCRM como inteligencia competitiva e fonte de priorizacao de produto, mantendo FGOS como marca e arquitetura propria. Novas capacidades entram como plugs no Event Spine, nao como acoplamento direto ao TomikCRM, Supabase ou n8n.",
+      "consequences": "Roadmap fica mais concreto sem violar as regras de arquitetura: Redis Streams, agency_id, idempotencia, anti-loop, providers isolados e valores em centavos continuam obrigatorios."
     }
   ]
 }

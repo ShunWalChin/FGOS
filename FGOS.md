@@ -92,8 +92,10 @@ O MVP atual segue a primeira rota porque prova a espinha com código que entende
   - **Testes HTTP** com `httpx.AsyncClient` + mocks — IDOR prevention e auth validados.
 
 Documentação consolidada em `docs/` (OVERVIEW, API, EVENTS, MODULE-B/C/E + AUTH-ONBOARDING + WEB) e
-`CHANGELOG.md`. **Próximo: adapters reais (LLM/Meta Send/social), refresh token, OAuth state
-server-side, app mobile (Expo), telas restantes do web.**
+`CHANGELOG.md`. A inteligência competitiva mais recente do TomikCRM/Futura IA está em
+`docs/COMPETITOR-TOMIKCRM-FUTURA-IA.md` e entra como blueprint de produto, sem alterar a regra de
+arquitetura: tudo continua plugado no barramento de eventos. **Próximo: adapters reais (LLM/Meta
+Send/social), refresh token, OAuth state server-side, app mobile (Expo), telas restantes do web.**
 
 ---
 
