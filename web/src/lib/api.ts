@@ -230,6 +230,35 @@ export interface MediaItem {
   mime: string | null;
   size_bytes: number | null;
 }
+export interface VoiceAgent {
+  id: string;
+  name: string;
+  provider: string;
+  agent_id: string;
+  status: string;
+  created_at: string;
+}
+export interface BrandVoice {
+  id: string;
+  name: string;
+  tagline: string | null;
+  tone: string[];
+  avoid: string[];
+  personality: string | null;
+  industry: string | null;
+  autonomy: string;
+  created_at: string;
+}
+export interface ContentPiece {
+  id: string;
+  type: string;
+  platform: string | null;
+  title: string;
+  body: string | null;
+  status: string;
+  brand_voice_id: string | null;
+  updated_at: string | null;
+}
 
 const q = (params: Record<string, string | number>): string =>
   "?" +
@@ -375,4 +404,33 @@ export const api = {
     url?: string;
     mime?: string;
   }) => req<{ id: string }>("/api/media", { method: "POST", body: JSON.stringify(body) }),
+
+  // Voz (ElevenLabs Convai — absorbed from voz-panel)
+  voiceAgents: (agencyId: string) => req<VoiceAgent[]>("/api/voice-agents" + q({ agency_id: agencyId })),
+  createVoiceAgent: (body: { name: string; agent_id: string; provider?: string }) =>
+    req<{ id: string }>("/api/voice-agents", { method: "POST", body: JSON.stringify(body) }),
+  deleteVoiceAgent: (id: string) => req<void>(`/api/voice-agents/${id}`, { method: "DELETE" }),
+
+  // Growth / Conteúdo (brand voice + content — absorbed from growthOS)
+  brandVoices: (agencyId: string) => req<BrandVoice[]>("/api/brand-voices" + q({ agency_id: agencyId })),
+  createBrandVoice: (body: {
+    name: string;
+    tagline?: string;
+    tone?: string[];
+    avoid?: string[];
+    personality?: string;
+    industry?: string;
+    autonomy?: string;
+  }) => req<{ id: string }>("/api/brand-voices", { method: "POST", body: JSON.stringify(body) }),
+  contentPieces: (statusFilter?: string) =>
+    req<ContentPiece[]>("/api/content-pieces" + (statusFilter ? q({ status_filter: statusFilter }) : "")),
+  createContent: (body: { type: string; title: string; platform?: string; body?: string; brand_voice_id?: string }) =>
+    req<{ id: string }>("/api/content-pieces", { method: "POST", body: JSON.stringify(body) }),
+  updateContent: (id: string, body: { status?: string; body?: string }) =>
+    req<{ id: string; status: string }>(`/api/content-pieces/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+  lintContent: (text: string, brandVoiceId?: string) =>
+    req<{ ok: boolean; violations: string[]; checked: number }>("/api/content-pieces/lint", {
+      method: "POST",
+      body: JSON.stringify({ body: text, brand_voice_id: brandVoiceId }),
+    }),
 };

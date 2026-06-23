@@ -315,3 +315,17 @@ textarea.field { min-height: 92px; resize: vertical; line-height: 1.4; }
 
 @media (max-width: 860px) { .split { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .loading::before { animation: none; } }
+
+/* voice orb (Módulo Voz, absorvido do voz-panel) */
+.voice-orb { position: relative; width: 280px; height: 280px; display: grid; place-items: center; margin: 10px auto 24px; }
+.voice-orb .core {
+  width: 180px; height: 180px; border-radius: 50%; display: grid; place-items: center; text-align: center; gap: 4px;
+  background: radial-gradient(circle at 50% 38%, rgba(0, 240, 255, .14), rgba(168, 85, 247, .06));
+  border: 1px solid rgba(0, 240, 255, .38);
+  box-shadow: inset 0 0 50px rgba(0, 240, 255, .16), 0 0 42px rgba(0, 240, 255, .14);
+}
+.voice-orb .ring { position: absolute; border-radius: 50%; border: 1px solid rgba(0, 240, 255, .25); animation: orbpulse 3.2s ease-in-out infinite; pointer-events: none; }
+.voice-orb .ring { width: 230px; height: 230px; }
+.voice-orb .ring.r2 { width: 280px; height: 280px; border-color: rgba(168, 85, 247, .22); animation-delay: .6s; }
+@keyframes orbpulse { 0%, 100% { transform: scale(1); opacity: .45; } 50% { transform: scale(1.04); opacity: .9; } }
+@media (prefers-reduced-motion: reduce) { .voice-orb .ring { animation: none; } }
