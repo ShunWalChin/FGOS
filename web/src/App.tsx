@@ -14,6 +14,7 @@ import Voz from "./pages/Voz";
 import Growth from "./pages/Growth";
 import Auditoria from "./pages/Auditoria";
 import IA from "./pages/IA";
+import Memoria from "./pages/Memoria";
 import Video from "./pages/Video";
 import Social from "./pages/Social";
 import Workspace from "./pages/Workspace";
@@ -42,6 +43,7 @@ export default function App() {
             <Route path="/growth" element={<Growth />} />
             <Route path="/auditoria" element={<Auditoria />} />
             <Route path="/ia" element={<IA />} />
+            <Route path="/memoria" element={<Memoria />} />
             <Route path="/video" element={<Video />} />
             <Route path="/social" element={<Social />} />
             <Route path="/workspace" element={<Workspace />} />

@@ -72,7 +72,11 @@ Regras inegociáveis do barramento (ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE
 | **E — BI** | PowerBI | ✅ micro-batch → ClickHouse + API de leitura + dashboard ECharts | `events_log` (MergeTree) |
 | **Acesso** | Auth + Onboarding | ✅ login JWT multi-tenant + signup self-service white-label | `app_users`, `agencies` (slug/branding) |
 | **Voz** | ElevenLabs Convai | ✅ agente de voz por agência + painel holográfico | `voice_agents` |
-| **Growth** | growthOS (brand voice) | ✅ brand voice + content pieces (draft→approved→published) + **lint anti-slop** | `brand_voices`, `content_pieces` |
+| **Growth** | growthOS (brand voice) | ✅ brand voice + content pieces + **lint anti-slop** + **worker de geração** (LLM) | `brand_voices`, `content_pieces` |
+| **IA** | OpenAI/Anthropic/Google/… | ✅ painel de chaves de **9 LLMs** (cripto pgcrypto) + test real + wiring na geração | `ai_models` |
+| **Memória** | RuVector (reescrito) | ✅ RAG **híbrido** pgvector (HNSW) + full-text + **fusão RRF** | `memory_documents`, `memory_chunks` |
+| **Auditoria** | kairos | ✅ feed de eventos + **trace viewer** (cadeia por `trace_id`) + trilha de tickets | (lê `events_log`/`ticket_traking`) |
+| **Vídeo** | OpenCut | ✅ projetos de vídeo + abre o editor OpenCut (companheiro) | `video_projects` |
 
 ## MVP — espinha em 4 comandos
 
@@ -112,11 +116,12 @@ após `fgos seed`: `dev@fgos.local` / `fgosdev`. Tema por agência via `/onboard
 
 ## Web App (SPA operável)
 
-React + Vite + TypeScript em `web/` — **12 telas** consumindo a API: Login, Dashboard (BI),
-CRM Kanban, Mensageria, **Atendimento** (inbox multi-agente), **Campanhas** (bulk + progresso),
-**Studio** (chatbot / integrações n8n / templates), **Biblioteca** (captions + mídia), **Voz**
-(widget Convai + orbe holográfico), **Growth** (brand voice + conteúdo + lint), Social/Ads e
-Workspace. Client tipado (`web/src/lib/api.ts`), responsivo (drawer no mobile), tema cyber FAT Tech.
+React + Vite + TypeScript em `web/` — **17 telas** consumindo a API: Login, Dashboard (BI),
+CRM Kanban, Mensageria, **Atendimento** (inbox multi-agente), **Campanhas** (bulk), **Studio**
+(chatbot / n8n / templates), **Biblioteca** (captions + mídia), **Voz** (Convai), **Growth** (brand
+voice + conteúdo + IA), **IA** (chaves de LLM), **Memória** (RAG híbrido), **Auditoria** (trace
+viewer), **Vídeo** (OpenCut), Social/Ads e Workspace. Client tipado (`web/src/lib/api.ts`), responsivo
+(drawer no mobile), tema cyber FAT Tech.
 
 ```powershell
 cd web
@@ -189,6 +194,11 @@ python -m compileall src
 | **12** ✅ | **Voz** (agente ElevenLabs Convai + painel) — absorvido do fat-tech-voz-panel |
 | **13** ✅ | **Growth** (brand voice + content pieces + lint anti-slop) — absorvido do fat-tech-growthOS |
 | **14** ✅ | Revisão de banco: índice em **todas as 25 FKs** + auditoria multi-tenant (0 gaps reais) |
+| **15** ✅ | **Worker de geração de conteúdo** (Growth) — brand-voice + anti-slop + LLM live/dry-run |
+| **16** ✅ | **Auditoria / Console** (kairos) — feed de eventos + **trace viewer** por `trace_id` |
+| **17** ✅ | **IA** — painel de chaves de 9 LLMs (cripto) + adapters reais + wiring na geração |
+| **18** ✅ | **Vídeo** — projetos + editor OpenCut companheiro |
+| **19** ✅ | **Memória semântica / RAG híbrido** (pgvector + full-text + RRF) — reescrita do RuVector |
 
 ## Operação
 

@@ -5,6 +5,30 @@ roadmap (ver [docs/OVERVIEW.md](docs/OVERVIEW.md) §5).
 
 ## [Unreleased]
 
+### Fases 12–19 — Voz, Growth, IA, Auditoria, Vídeo, Memória (absorção de +5 repos)
+
+> Absorção de fat-tech-voz-panel (Voz), fat-tech-growthOS (Growth), fat-tech-kairos (Auditoria),
+> OpenCut (Vídeo) e RuVector (Memória RAG). Reescrita original na stack do FGOS.
+
+- **12 Voz** (mig 012 `voice_agents`): tela com widget ElevenLabs Convai + painel holográfico.
+- **13 Growth** (mig 013 `brand_voices`/`content_pieces`): brand voice + lint anti-slop.
+- **14 DB review** (mig 014): índice em **todas as 25 FKs** (Postgres não indexa FK automaticamente).
+- **15 Worker de geração** (`worker-content`): rascunho brand-aware + anti-slop, LLM live/dry-run.
+- **16 Auditoria** (ClickHouse mig 002 adiciona `trace_id`/`hops`/`event_id`): `/api/audit` feed +
+  **trace viewer** (cadeia por `trace_id`) + trilha de tickets; tela Auditoria.
+- **17 IA** (mig 016 `ai_models`, chaves **pgcrypto**): `providers/llm_live.py` com adapters reais —
+  OpenAI-compat (OpenAI/Groq/Mistral/OpenRouter/DeepSeek/Together/xAI) + Anthropic + Google = 9
+  providers; `/api/ai-models` CRUD + **test real** (round-trip ao provider); `worker-content` resolve
+  o modelo padrão da agência e gera live; tela IA. Chaves nunca retornam pela API.
+- **18 Vídeo** (mig 017 `video_projects`): editor **OpenCut** companheiro (editor_url).
+- **19 Memória / RAG** (mig 018, **pgvector** 0.6): `memory_documents`/`memory_chunks` (vector(1536)
+  HNSW + tsvector); busca **híbrida** dense + sparse com **Reciprocal Rank Fusion** — reescrita
+  original do núcleo do RuVector. `providers/embeddings.py` (feature-hash offline + extension live).
+
+#### Correções (debug)
+- `ruff` pegou um `live`-undefined que crasharia o `worker-content` na fase 17 — corrigido.
+- pgcrypto `pgp_sym_encrypt` com `cast(... as text)` para evitar `AmbiguousParameterError`.
+
 ### Fases 8–11 — Absorção de SaaS de referência (WhatICket / Stackposts / WASender)
 
 > Engenharia reversa de 6 sistemas → reescrita original no runtime event-driven.

@@ -303,6 +303,22 @@ export interface VideoProject {
   status: string;
   created_at: string;
 }
+export interface MemoryDoc {
+  id: string;
+  kind: string;
+  title: string;
+  chunks: number;
+  created_at: string;
+}
+export interface MemoryHit {
+  chunk_id: string;
+  document_id: string;
+  title: string;
+  kind: string;
+  rank: number;
+  signals: string[];
+  snippet: string;
+}
 
 const q = (params: Record<string, string | number>): string =>
   "?" +
@@ -502,4 +518,15 @@ export const api = {
   updateVideoProject: (id: string, status: string) =>
     req<{ id: string; status: string }>(`/api/video-projects/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }),
   deleteVideoProject: (id: string) => req<void>(`/api/video-projects/${id}`, { method: "DELETE" }),
+
+  // Memória semântica / RAG (rewrite of RuVector — hybrid pgvector + full-text + RRF)
+  memoryDocs: (agencyId: string) => req<MemoryDoc[]>("/api/memory/documents" + q({ agency_id: agencyId })),
+  memoryIngest: (body: { kind: string; title: string; content: string }) =>
+    req<{ id: string; chunks: number }>("/api/memory/ingest", { method: "POST", body: JSON.stringify(body) }),
+  memorySearch: (query: string, k = 6) =>
+    req<{ hits: MemoryHit[]; dense: number; sparse: number }>("/api/memory/search", {
+      method: "POST",
+      body: JSON.stringify({ query, k }),
+    }),
+  deleteMemoryDoc: (id: string) => req<void>(`/api/memory/documents/${id}`, { method: "DELETE" }),
 };
