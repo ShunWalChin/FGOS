@@ -6,6 +6,12 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Kanban from "./pages/Kanban";
 import Chat from "./pages/Chat";
+import Atendimento from "./pages/Atendimento";
+import Campanhas from "./pages/Campanhas";
+import Studio from "./pages/Studio";
+import Biblioteca from "./pages/Biblioteca";
+import Voz from "./pages/Voz";
+import Growth from "./pages/Growth";
 import Social from "./pages/Social";
 import Workspace from "./pages/Workspace";
 
@@ -25,6 +31,12 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/crm" element={<Kanban />} />
             <Route path="/chat" element={<Chat />} />
+            <Route path="/atendimento" element={<Atendimento />} />
+            <Route path="/campanhas" element={<Campanhas />} />
+            <Route path="/studio" element={<Studio />} />
+            <Route path="/biblioteca" element={<Biblioteca />} />
+            <Route path="/voz" element={<Voz />} />
+            <Route path="/growth" element={<Growth />} />
             <Route path="/social" element={<Social />} />
             <Route path="/workspace" element={<Workspace />} />
           </Route>

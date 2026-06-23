@@ -6,10 +6,11 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, ConfigDict, Field
 
 from core_engine import repository as repo
+from core_engine.api.deps import Principal, get_principal
 from core_engine.bus import RedisStreamBus
 from core_engine.db import session_scope
 from core_engine.events import Actor, EventEnvelope
@@ -21,7 +22,6 @@ router = APIRouter(prefix="/api", tags=["social"])
 
 class SocialAccountIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    agency_id: UUID
     platform: str
     external_account_id: str = Field(min_length=1)
     access_token: str = Field(min_length=1)
@@ -33,11 +33,12 @@ class SocialAccountIn(BaseModel):
 
 class PostIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    agency_id: UUID
     social_account_id: UUID
     caption: str = ""
     media_urls: list[str] = Field(default_factory=list)
     scheduled_at: datetime
+    repost_frequency: int | None = None      # seconds between reposts (Stackposts-style)
+    repost_until: datetime | None = None
 
 
 def _settings(request: Request) -> Settings:
@@ -61,13 +62,17 @@ def _check_platform(platform: str) -> None:
 
 
 @router.post("/social-accounts", status_code=status.HTTP_201_CREATED)
-async def connect_account(payload: SocialAccountIn, request: Request) -> dict[str, str]:
+async def connect_account(
+    payload: SocialAccountIn,
+    request: Request,
+    principal: Principal = Depends(get_principal),
+) -> dict[str, str]:
     _check_platform(payload.platform)
     settings = _settings(request)
     async with session_scope(_factory(request)) as session:
         account_id = await repo.insert_social_account(
             session,
-            agency_id=str(payload.agency_id),
+            agency_id=str(principal.agency_id),
             platform=payload.platform,
             external_account_id=payload.external_account_id,
             access_token=payload.access_token,
@@ -80,7 +85,7 @@ async def connect_account(payload: SocialAccountIn, request: Request) -> dict[st
 
     await _bus(request).publish(settings.stream_events, EventEnvelope(
         event="social.account.connected",
-        agency_id=payload.agency_id,
+        agency_id=principal.agency_id,
         actor=Actor(type="user", id="api"),
         data={"social_account_id": account_id, "platform": payload.platform},
     ))
@@ -88,28 +93,37 @@ async def connect_account(payload: SocialAccountIn, request: Request) -> dict[st
 
 
 @router.get("/social-accounts")
-async def list_accounts(request: Request, agency_id: UUID) -> list[dict[str, Any]]:
+async def list_accounts(
+    request: Request,
+    principal: Principal = Depends(get_principal),
+) -> list[dict[str, Any]]:
     async with session_scope(_factory(request)) as session:
-        rows = await repo.list_social_accounts(session, agency_id=str(agency_id))
+        rows = await repo.list_social_accounts(session, agency_id=str(principal.agency_id))
     return [_jsonable(r) for r in rows]
 
 
 @router.post("/posts", status_code=status.HTTP_201_CREATED)
-async def schedule_post(payload: PostIn, request: Request) -> dict[str, str]:
+async def schedule_post(
+    payload: PostIn,
+    request: Request,
+    principal: Principal = Depends(get_principal),
+) -> dict[str, str]:
     settings = _settings(request)
     body = {"caption": payload.caption, "media_urls": payload.media_urls}
     async with session_scope(_factory(request)) as session:
         post_id = await repo.enqueue_post(
             session,
-            agency_id=str(payload.agency_id),
+            agency_id=str(principal.agency_id),
             social_account_id=str(payload.social_account_id),
             payload=json.dumps(body, ensure_ascii=True),
-            scheduled_at=payload.scheduled_at.isoformat(),
+            scheduled_at=payload.scheduled_at,
+            repost_frequency=payload.repost_frequency,
+            repost_until=payload.repost_until,
         )
 
     await _bus(request).publish(settings.stream_events, EventEnvelope(
         event="social.post.scheduled",
-        agency_id=payload.agency_id,
+        agency_id=principal.agency_id,
         actor=Actor(type="user", id="api"),
         data={
             "post_id": post_id,
@@ -122,22 +136,28 @@ async def schedule_post(payload: PostIn, request: Request) -> dict[str, str]:
 
 @router.get("/posts")
 async def list_scheduled_posts(
-    request: Request, agency_id: UUID, limit: int = 50
+    request: Request,
+    principal: Principal = Depends(get_principal),
+    limit: int = 50,
 ) -> list[dict[str, Any]]:
     limit = max(1, min(limit, 200))
     async with session_scope(_factory(request)) as session:
-        rows = await repo.list_posts(session, agency_id=str(agency_id), limit=limit)
+        rows = await repo.list_posts(session, agency_id=str(principal.agency_id), limit=limit)
     return [_jsonable(r) for r in rows]
 
 
 @router.get("/oauth/{platform}/authorize")
-async def oauth_authorize(platform: str, request: Request, agency_id: UUID) -> dict[str, str]:
+async def oauth_authorize(
+    platform: str,
+    request: Request,
+    principal: Principal = Depends(get_principal),
+) -> dict[str, str]:
     """Return the provider consent URL. `state` carries the tenant so the
     callback can attribute the account; store it server-side in production."""
 
     _check_platform(platform)
     settings = _settings(request)
-    state = f"{agency_id}:{secrets.token_urlsafe(16)}"
+    state = f"{principal.agency_id}:{secrets.token_urlsafe(16)}"
     return {"authorize_url": oauth_authorize_url(platform, state, settings), "state": state}
 
 
@@ -164,8 +184,6 @@ async def oauth_callback(
             "state": state or "",
             "note": "SOCIAL_LIVE=false — token exchange skipped",
         }
-    # Live token exchange plugs in here (httpx POST to the platform token endpoint),
-    # then repo.insert_social_account(...) with the encrypted tokens.
     raise HTTPException(
         status_code=status.HTTP_501_NOT_IMPLEMENTED,
         detail="live token exchange not implemented for this platform yet",

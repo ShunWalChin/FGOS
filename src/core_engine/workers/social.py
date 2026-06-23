@@ -45,6 +45,15 @@ async def process_claimed_post(
         await repo.mark_social_post_published(
             session, post_id=post_id, platform_post_id=result.platform_post_id
         )
+        # repost series (absorbed from Stackposts): re-enqueue the next occurrence
+        repost_id = await repo.reschedule_repost(session, post_id=post_id)
+        if repost_id:
+            await _publish(bus, settings, EventEnvelope(
+                event="social.post.reposted",
+                agency_id=agency_id,
+                actor=Actor(type="system", id="worker-social"),
+                data={"post_id": post_id, "repost_id": repost_id, "platform": platform},
+            ))
     else:
         await repo.mark_social_post_failed(
             session,

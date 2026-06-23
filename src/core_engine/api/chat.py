@@ -3,10 +3,11 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import text
 
+from core_engine.api.deps import Principal, get_principal
 from core_engine.db import session_scope
 
 router = APIRouter(prefix="/api", tags=["messaging"])
@@ -22,7 +23,11 @@ def _factory(request: Request):
 
 
 @router.get("/contacts")
-async def list_contacts(request: Request, agency_id: UUID, limit: int = 100) -> list[dict[str, Any]]:
+async def list_contacts(
+    request: Request,
+    principal: Principal = Depends(get_principal),
+    limit: int = 100,
+) -> list[dict[str, Any]]:
     limit = max(1, min(limit, 500))
     async with session_scope(_factory(request)) as session:
         result = await session.execute(
@@ -33,7 +38,7 @@ async def list_contacts(request: Request, agency_id: UUID, limit: int = 100) -> 
                 order by created_at desc limit :l
                 """
             ),
-            {"a": str(agency_id), "l": limit},
+            {"a": str(principal.agency_id), "l": limit},
         )
         rows = result.mappings().all()
     return [
@@ -51,7 +56,11 @@ async def list_contacts(request: Request, agency_id: UUID, limit: int = 100) -> 
 
 
 @router.get("/chat/sessions")
-async def list_sessions(request: Request, agency_id: UUID, limit: int = 100) -> list[dict[str, Any]]:
+async def list_sessions(
+    request: Request,
+    principal: Principal = Depends(get_principal),
+    limit: int = 100,
+) -> list[dict[str, Any]]:
     """Inbox: sessions with contact label, mode and last-message preview."""
     limit = max(1, min(limit, 200))
     async with session_scope(_factory(request)) as session:
@@ -72,7 +81,7 @@ async def list_sessions(request: Request, agency_id: UUID, limit: int = 100) -> 
                 order by s.updated_at desc limit :l
                 """
             ),
-            {"a": str(agency_id), "l": limit},
+            {"a": str(principal.agency_id), "l": limit},
         )
         rows = result.mappings().all()
     return [

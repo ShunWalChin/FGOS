@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from typing import Any
-from uuid import UUID
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 
 from core_engine import bi_queries
+from core_engine.api.deps import Principal, get_principal
 from core_engine.clickhouse_client import create_clickhouse_client
 from core_engine.settings import Settings
 
@@ -33,24 +33,38 @@ def _run(request: Request, builder, *args) -> list[dict[str, Any]]:
 
 
 @router.get("/summary")
-async def summary(request: Request, agency_id: UUID) -> dict[str, Any]:
-    rows = _run(request, bi_queries.summary_query, str(agency_id))
+async def summary(
+    request: Request,
+    principal: Principal = Depends(get_principal),
+) -> dict[str, Any]:
+    rows = _run(request, bi_queries.summary_query, str(principal.agency_id))
     return rows[0] if rows else {}
 
 
 @router.get("/timeseries")
-async def timeseries(request: Request, agency_id: UUID, days: int = 30) -> list[dict[str, Any]]:
-    return _run(request, bi_queries.timeseries_query, str(agency_id), days)
+async def timeseries(
+    request: Request,
+    principal: Principal = Depends(get_principal),
+    days: int = 30,
+) -> list[dict[str, Any]]:
+    return _run(request, bi_queries.timeseries_query, str(principal.agency_id), days)
 
 
 @router.get("/breakdown")
-async def breakdown(request: Request, agency_id: UUID, limit: int = 20) -> list[dict[str, Any]]:
-    return _run(request, bi_queries.breakdown_query, str(agency_id), limit)
+async def breakdown(
+    request: Request,
+    principal: Principal = Depends(get_principal),
+    limit: int = 20,
+) -> list[dict[str, Any]]:
+    return _run(request, bi_queries.breakdown_query, str(principal.agency_id), limit)
 
 
 @router.get("/funnel")
-async def funnel(request: Request, agency_id: UUID) -> list[dict[str, Any]]:
-    return _run(request, bi_queries.funnel_query, str(agency_id))
+async def funnel(
+    request: Request,
+    principal: Principal = Depends(get_principal),
+) -> list[dict[str, Any]]:
+    return _run(request, bi_queries.funnel_query, str(principal.agency_id))
 
 
 @router.get("/health")

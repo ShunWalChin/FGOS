@@ -73,17 +73,27 @@ O MVP atual segue a primeira rota porque prova a espinha com código que entende
 - **Fase 4** ✅ — BI: API de leitura sobre ClickHouse (CQRS) + dashboard ECharts em `/dashboard`.
 - **Fase 5** ✅ — Auth JWT multi-tenant (token + senha, só stdlib) + CORS; onboarding self-service
   (`/onboarding`) que provisiona uma agência inteira e já loga; white-label por agência (slug +
-  branding). App FastAPI valida import com 37 rotas. Falta: aplicar auth em todas as rotas
-  derivando `agency_id` do token, refresh token, rate-limit de login.
+  branding). App FastAPI valida import com 37 rotas. Falta: refresh token, OAuth state server-side.
 
 - **Fase 6** ✅ — Web App React+Vite+TS em `web/` (login → Dashboard BI → CRM Kanban), consumindo a
   API; **compila de verdade** (`tsc` + `vite build`). Camada de dados (`web/src/lib`) é a base
   compartilhada para o app mobile (Expo). Falta: telas de Mensageria/Social/Workspace, DnD real,
   testes de componente, empacotar `dist/`.
 
+- **Fase 7** ✅ — Hardening de segurança + CI ativo:
+  - **IDOR eliminado** em todos os módulos: `agency_id` agora deriva do token JWT em 100% das rotas.
+  - **`auth_required=True` por default** (era `False` — expunha a API sem token no deploy).
+  - **Rate-limit no login**: 10 tentativas/60s por e-mail via Redis, HTTP 429.
+  - **`@lru_cache` em `get_settings()`** — sem re-parse do `.env` a cada request.
+  - **`repository.py` refatorado** em pacote `repository/` (base, social, auth, messaging). Zero
+    breaking change, cada módulo < 300 linhas.
+  - **CI ativo** em `.github/workflows/` (lint + testes + secret scan a cada push).
+  - **Migration 007** — 3 índices faltando adicionados (social_accounts, chat_sessions, lists).
+  - **Testes HTTP** com `httpx.AsyncClient` + mocks — IDOR prevention e auth validados.
+
 Documentação consolidada em `docs/` (OVERVIEW, API, EVENTS, MODULE-B/C/E + AUTH-ONBOARDING + WEB) e
-`CHANGELOG.md`. **Próximo: app mobile (Expo) reusando `web/src/lib`** ou adapters reais
-(LLM/Meta Send/social) ou as telas restantes do web.
+`CHANGELOG.md`. **Próximo: adapters reais (LLM/Meta Send/social), refresh token, OAuth state
+server-side, app mobile (Expo), telas restantes do web.**
 
 ---
 

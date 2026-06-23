@@ -5,6 +5,75 @@ roadmap (ver [docs/OVERVIEW.md](docs/OVERVIEW.md) §5).
 
 ## [Unreleased]
 
+### Fases 8–11 — Absorção de SaaS de referência (WhatICket / Stackposts / WASender)
+
+> Engenharia reversa de 6 sistemas → reescrita original no runtime event-driven.
+> Ver [docs/REVERSE-ENGINEERING-KB.md](docs/REVERSE-ENGINEERING-KB.md) e
+> [docs/ATENDIMENTO-INTEGRATION-REPORT.md](docs/ATENDIMENTO-INTEGRATION-REPORT.md).
+
+#### Fase 8 — Atendimento (multi-agente) — absorvido do WhatICket
+- Tabelas `tickets`, `queues`, `user_queues`, `queue_options` (árvore de chatbot),
+  `queue_integrations` (n8n/OpenAI/Typebot), `ticket_traking` (auditoria). Migration `008`.
+- API `/api/tickets`, `/api/queues`, `/api/queues/{id}/options`, `/api/queue-integrations`.
+  Eventos `messaging.ticket.*` e `messaging.integration.dispatched`. Tela SPA **Atendimento**.
+
+#### Fase 9 — Campanhas (bulk) — absorvido do WhatICket/WASender
+- `contact_lists`, `contact_list_items`, `campaigns`, `campaign_shipping`. Migration `009`.
+- Worker `worker-campaigns` (dry-run, `SKIP LOCKED`) com **rotação de mensagens** (anti-ban) e
+  render `{{variáveis}}`. Eventos `messaging.campaign.{started,sent,completed}`. Tela SPA **Campanhas**.
+
+#### Fase 10 — Templates / quick replies
+- `message_templates` com render `{{var}}`. API `/api/templates` (+ `/render`). Migration `010`.
+
+#### Fase 11 — Scheduler social + biblioteca — absorvido do Stackposts
+- `captions`, `media_files` (pastas), `posts_queue.repost_frequency/repost_until`. Migration `011`.
+- Repost worker re-enfileira a série até o deadline (`social.post.reposted`). API `/api/captions`,
+  `/api/media`. Telas SPA **Studio** (chatbot/integrações/templates) e **Biblioteca** (captions/mídia).
+
+#### Correções de bugs (debug)
+- `insert_social_account`: `pgp_sym_encrypt` com `AmbiguousParameterError` quando `refresh_token`
+  é NULL → `cast(... as text)` nas duas ocorrências.
+- `enqueue_post`: `scheduled_at`/`repost_until` agora passados como `datetime` (string ISO falhava no
+  bind `timestamptz` do asyncpg). O caminho do scheduler social nunca tinha sido exercido E2E.
+- Campanha com lista vazia não fica mais presa em `running` (vai direto a `done`).
+- Débitos: ownership cross-tenant na escrita de tickets (D1); `redis>=5.0,<6` pinado (D2);
+  `smoke_mvp.py` sem `agency_id` (D3) — agora passa.
+
+### Fase 7 — Hardening de segurança + CI ativo + qualidade de código
+
+#### Segurança crítica (IDOR eliminado)
+- **IDOR corrigido em todos os módulos**: `agency_id` removido como parâmetro de entrada em todas as
+  rotas REST — agora é sempre derivado do token JWT via `Principal` (`Depends(get_principal)`).
+  Afetava: `GET/POST /workspaces`, `GET/POST /deals`, `GET/POST /posts`, `GET/POST /social-accounts`,
+  `GET /contacts`, `GET /chat/sessions`, `GET /api/bi/*`. Qualquer usuário autenticado podia ler
+  dados de outro tenant passando `agency_id` arbitrário.
+- **`auth_required=True` por default** em `settings.py`: o default anterior (`False`) expunha toda
+  a API sem autenticação se a variável de ambiente fosse esquecida no deploy.
+- **Rate-limit no login** (`POST /api/auth/login`): máximo 10 tentativas por e-mail por 60 segundos
+  via Redis (`rate_limit:login:{email}`). Retorna HTTP 429 com header `Retry-After`.
+
+#### Performance / qualidade
+- **`get_settings()` com `@lru_cache(maxsize=1)`**: elimina parsing repetido do `.env` a cada
+  chamada — importante em carga alta.
+- **`repository.py` refatorado em pacote por domínio** (`repository/`): arquivo monolítico de 724
+  linhas dividido em `base.py`, `social.py`, `auth.py`, `messaging.py`. Zero breaking change — o
+  `__init__.py` re-exporta tudo. Cada módulo < 300 linhas.
+
+#### CI/CD
+- **CI ativado**: arquivo movido de `.github-workflows-pending/` para `.github/workflows/` — o
+  pipeline (lint ruff + compile check + unit tests + gitleaks secret scan) agora roda em todo push.
+
+#### Banco de dados
+- **Migration 007 — índices faltando**: `idx_social_accounts_agency`, `idx_chat_sessions_contact_channel`,
+  `updated_at` em `lists` + índice `idx_lists_workspace_updated`. Elimina full table scans
+  frequentes nas queries de inbox e listagem de contas sociais.
+
+#### Testes
+- **Testes de integração HTTP**: `tests/test_api_auth.py` (login, token, auth_required) e
+  `tests/test_api_multitenancy.py` (isolamento de tenant, IDOR prevention, 401 sem token) usando
+  `httpx.AsyncClient` + `ASGITransport` — zero dependência de banco real.
+- **`asyncio_mode = "auto"`** em `pyproject.toml`.
+
 ### Fase 6 (cont.) — Frontend completo: todas as telas + UI/UX + responsivo
 - **6 telas**: Login, Dashboard, CRM Kanban, **Mensageria** (inbox + thread + toggle bot/humano),
   **Social/Ads** (contas + fila + conectar + agendar), **Workspace** (listas + itens + criar).

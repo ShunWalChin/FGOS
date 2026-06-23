@@ -3,10 +3,11 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import text
 
+from core_engine.api.deps import Principal, get_principal
 from core_engine.bus import RedisStreamBus
 from core_engine.db import session_scope
 from core_engine.events import Actor, EventEnvelope
@@ -17,7 +18,6 @@ router = APIRouter(prefix="/api", tags=["crm"])
 
 class PipelineIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    agency_id: UUID
     name: str = Field(min_length=1, max_length=200)
 
 
@@ -32,7 +32,6 @@ class StageIn(BaseModel):
 
 class DealIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    agency_id: UUID
     pipeline_id: UUID
     stage_id: UUID
     title: str = Field(min_length=1, max_length=500)
@@ -66,11 +65,14 @@ async def _publish(bus: RedisStreamBus, settings: Settings, event: EventEnvelope
 
 
 @router.get("/pipelines")
-async def list_pipelines(request: Request, agency_id: UUID) -> list[dict[str, Any]]:
+async def list_pipelines(
+    request: Request,
+    principal: Principal = Depends(get_principal),
+) -> list[dict[str, Any]]:
     async with session_scope(_factory(request)) as session:
         result = await session.execute(
             text("select id, name from pipelines where agency_id = :a order by name"),
-            {"a": str(agency_id)},
+            {"a": str(principal.agency_id)},
         )
         rows = result.mappings().all()
     return [{"id": str(r["id"]), "name": r["name"]} for r in rows]
@@ -102,7 +104,11 @@ async def list_stages(request: Request, pipeline_id: UUID) -> list[dict[str, Any
 
 
 @router.post("/pipelines", status_code=status.HTTP_201_CREATED)
-async def create_pipeline(payload: PipelineIn, request: Request) -> dict[str, str]:
+async def create_pipeline(
+    payload: PipelineIn,
+    request: Request,
+    principal: Principal = Depends(get_principal),
+) -> dict[str, str]:
     async with session_scope(_factory(request)) as session:
         result = await session.execute(
             text(
@@ -112,7 +118,7 @@ async def create_pipeline(payload: PipelineIn, request: Request) -> dict[str, st
                 returning id
                 """
             ),
-            {"agency_id": str(payload.agency_id), "name": payload.name},
+            {"agency_id": str(principal.agency_id), "name": payload.name},
         )
         pipeline_id = str(result.scalar_one())
     return {"id": pipeline_id}
@@ -142,7 +148,11 @@ async def create_stage(payload: StageIn, request: Request) -> dict[str, str]:
 
 
 @router.post("/deals", status_code=status.HTTP_201_CREATED)
-async def create_deal(payload: DealIn, request: Request) -> dict[str, str]:
+async def create_deal(
+    payload: DealIn,
+    request: Request,
+    principal: Principal = Depends(get_principal),
+) -> dict[str, str]:
     async with session_scope(_factory(request)) as session:
         result = await session.execute(
             text(
@@ -155,7 +165,7 @@ async def create_deal(payload: DealIn, request: Request) -> dict[str, str]:
                 """
             ),
             {
-                "agency_id": str(payload.agency_id),
+                "agency_id": str(principal.agency_id),
                 "pipeline_id": str(payload.pipeline_id),
                 "stage_id": str(payload.stage_id),
                 "contact_id": str(payload.contact_id) if payload.contact_id else None,
@@ -169,7 +179,7 @@ async def create_deal(payload: DealIn, request: Request) -> dict[str, str]:
 
     event = EventEnvelope(
         event="crm.deal.created",
-        agency_id=payload.agency_id,
+        agency_id=principal.agency_id,
         actor=Actor(type="user", id="api"),
         data={
             "deal_id": deal_id,
@@ -186,7 +196,7 @@ async def create_deal(payload: DealIn, request: Request) -> dict[str, str]:
 @router.get("/deals")
 async def list_deals(
     request: Request,
-    agency_id: UUID,
+    principal: Principal = Depends(get_principal),
     limit: int = 50,
 ) -> list[dict[str, Any]]:
     limit = max(1, min(limit, 200))
@@ -202,7 +212,7 @@ async def list_deals(
                 limit :limit
                 """
             ),
-            {"agency_id": str(agency_id), "limit": limit},
+            {"agency_id": str(principal.agency_id), "limit": limit},
         )
         rows = result.mappings().all()
     return [

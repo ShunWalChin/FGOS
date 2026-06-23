@@ -154,6 +154,111 @@ export interface Post {
   last_error: string | null;
   published_at: string | null;
 }
+export interface Queue {
+  id: string;
+  name: string;
+  color: string;
+  greeting_message: string;
+  out_of_hours_message: string;
+  created_at: string;
+}
+export interface Ticket {
+  id: string;
+  status: "pending" | "open" | "closed";
+  channel: string;
+  unread_count: number;
+  last_message: string | null;
+  contact_id: string;
+  contact_label: string;
+  queue_id: string | null;
+  queue_name: string | null;
+  assigned_user_id: string | null;
+  agent_name: string | null;
+  updated_at: string | null;
+}
+export interface ContactList {
+  id: string;
+  name: string;
+  items: number;
+  created_at: string;
+}
+export interface Campaign {
+  id: string;
+  name: string;
+  status: string;
+  interval_seconds: number;
+  list_name: string | null;
+  total: number;
+  sent: number;
+  scheduled_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+}
+export interface QueueOption {
+  id: string;
+  parent_id: string | null;
+  title: string;
+  message: string;
+  option: string;
+}
+export interface QueueIntegration {
+  id: string;
+  queue_id: string | null;
+  type: string;
+  name: string;
+  url_n8n: string | null;
+  active: boolean;
+}
+export interface Template {
+  id: string;
+  name: string;
+  body: string;
+  shortcut: string | null;
+}
+export interface Caption {
+  id: string;
+  title: string;
+  content: string;
+  created_at: string;
+}
+export interface MediaItem {
+  id: string;
+  parent_id: string | null;
+  is_folder: boolean;
+  name: string;
+  url: string | null;
+  mime: string | null;
+  size_bytes: number | null;
+}
+export interface VoiceAgent {
+  id: string;
+  name: string;
+  provider: string;
+  agent_id: string;
+  status: string;
+  created_at: string;
+}
+export interface BrandVoice {
+  id: string;
+  name: string;
+  tagline: string | null;
+  tone: string[];
+  avoid: string[];
+  personality: string | null;
+  industry: string | null;
+  autonomy: string;
+  created_at: string;
+}
+export interface ContentPiece {
+  id: string;
+  type: string;
+  platform: string | null;
+  title: string;
+  body: string | null;
+  status: string;
+  brand_voice_id: string | null;
+  updated_at: string | null;
+}
 
 const q = (params: Record<string, string | number>): string =>
   "?" +
@@ -220,4 +325,114 @@ export const api = {
     caption: string;
     scheduled_at: string;
   }) => req<{ id: string }>("/api/posts", { method: "POST", body: JSON.stringify(body) }),
+
+  // Atendimento (multi-agent inbox — absorbed from WhatICket)
+  queues: (agencyId: string) => req<Queue[]>("/api/queues" + q({ agency_id: agencyId })),
+  createQueue: (body: { name: string; greeting_message?: string }) =>
+    req<{ id: string }>("/api/queues", { method: "POST", body: JSON.stringify(body) }),
+  tickets: (status?: string) =>
+    req<Ticket[]>("/api/tickets" + (status ? q({ status_filter: status }) : "")),
+  createTicket: (body: {
+    contact_id: string;
+    queue_id?: string;
+    channel?: string;
+    last_message?: string;
+  }) => req<{ id: string }>("/api/tickets", { method: "POST", body: JSON.stringify(body) }),
+  updateTicket: (
+    id: string,
+    body: { status?: string; queue_id?: string; assigned_user_id?: string; rating?: number }
+  ) => req<{ id: string; status: string }>(`/api/tickets/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+
+  // Campanhas (bulk — absorbed from WhatICket/WASender)
+  contactLists: (agencyId: string) =>
+    req<ContactList[]>("/api/contact-lists" + q({ agency_id: agencyId })),
+  createContactList: (name: string) =>
+    req<{ id: string }>("/api/contact-lists", { method: "POST", body: JSON.stringify({ name }) }),
+  addContactItems: (listId: string, items: Array<{ name: string; number: string; email?: string }>) =>
+    req<{ added: number }>(`/api/contact-lists/${listId}/items`, {
+      method: "POST",
+      body: JSON.stringify({ items }),
+    }),
+  campaigns: (agencyId: string) => req<Campaign[]>("/api/campaigns" + q({ agency_id: agencyId })),
+  createCampaign: (body: {
+    name: string;
+    contact_list_id: string;
+    messages: string[];
+    interval_seconds: number;
+    schedule_now: boolean;
+  }) => req<{ id: string }>("/api/campaigns", { method: "POST", body: JSON.stringify(body) }),
+  campaignAction: (id: string, action: "schedule" | "cancel") =>
+    req<{ id: string; status: string }>(`/api/campaigns/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ action }),
+    }),
+
+  // Studio: chatbot tree + integrations + templates
+  queueOptions: (queueId: string) => req<QueueOption[]>(`/api/queues/${queueId}/options`),
+  createQueueOption: (
+    queueId: string,
+    body: { title: string; message?: string; option: string; parent_id?: string }
+  ) => req<{ id: string }>(`/api/queues/${queueId}/options`, { method: "POST", body: JSON.stringify(body) }),
+  queueIntegrations: (agencyId: string) =>
+    req<QueueIntegration[]>("/api/queue-integrations" + q({ agency_id: agencyId })),
+  createQueueIntegration: (body: {
+    type: string;
+    name: string;
+    queue_id?: string;
+    url_n8n?: string;
+    prompt?: string;
+  }) => req<{ id: string }>("/api/queue-integrations", { method: "POST", body: JSON.stringify(body) }),
+  templates: (agencyId: string) => req<Template[]>("/api/templates" + q({ agency_id: agencyId })),
+  createTemplate: (body: { name: string; body: string; shortcut?: string }) =>
+    req<{ id: string }>("/api/templates", { method: "POST", body: JSON.stringify(body) }),
+  renderTemplate: (id: string, variables: Record<string, string>) =>
+    req<{ rendered: string }>(`/api/templates/${id}/render`, {
+      method: "POST",
+      body: JSON.stringify({ variables }),
+    }),
+
+  // Biblioteca: captions + media
+  captions: (agencyId: string) => req<Caption[]>("/api/captions" + q({ agency_id: agencyId })),
+  createCaption: (body: { title: string; content: string }) =>
+    req<{ id: string }>("/api/captions", { method: "POST", body: JSON.stringify(body) }),
+  media: (parentId?: string) =>
+    req<MediaItem[]>("/api/media" + (parentId ? q({ parent_id: parentId }) : "")),
+  createMedia: (body: {
+    name: string;
+    is_folder: boolean;
+    parent_id?: string;
+    url?: string;
+    mime?: string;
+  }) => req<{ id: string }>("/api/media", { method: "POST", body: JSON.stringify(body) }),
+
+  // Voz (ElevenLabs Convai — absorbed from voz-panel)
+  voiceAgents: (agencyId: string) => req<VoiceAgent[]>("/api/voice-agents" + q({ agency_id: agencyId })),
+  createVoiceAgent: (body: { name: string; agent_id: string; provider?: string }) =>
+    req<{ id: string }>("/api/voice-agents", { method: "POST", body: JSON.stringify(body) }),
+  deleteVoiceAgent: (id: string) => req<void>(`/api/voice-agents/${id}`, { method: "DELETE" }),
+
+  // Growth / Conteúdo (brand voice + content — absorbed from growthOS)
+  brandVoices: (agencyId: string) => req<BrandVoice[]>("/api/brand-voices" + q({ agency_id: agencyId })),
+  createBrandVoice: (body: {
+    name: string;
+    tagline?: string;
+    tone?: string[];
+    avoid?: string[];
+    personality?: string;
+    industry?: string;
+    autonomy?: string;
+  }) => req<{ id: string }>("/api/brand-voices", { method: "POST", body: JSON.stringify(body) }),
+  contentPieces: (statusFilter?: string) =>
+    req<ContentPiece[]>("/api/content-pieces" + (statusFilter ? q({ status_filter: statusFilter }) : "")),
+  createContent: (body: { type: string; title: string; platform?: string; body?: string; brand_voice_id?: string }) =>
+    req<{ id: string }>("/api/content-pieces", { method: "POST", body: JSON.stringify(body) }),
+  updateContent: (id: string, body: { status?: string; body?: string }) =>
+    req<{ id: string; status: string }>(`/api/content-pieces/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+  lintContent: (text: string, brandVoiceId?: string) =>
+    req<{ ok: boolean; violations: string[]; checked: number }>("/api/content-pieces/lint", {
+      method: "POST",
+      body: JSON.stringify({ body: text, brand_voice_id: brandVoiceId }),
+    }),
+  generateContent: (body: { type: string; title: string; prompt: string; platform?: string; brand_voice_id?: string }) =>
+    req<{ id: string; status: string }>("/api/content-pieces/generate", { method: "POST", body: JSON.stringify(body) }),
 };

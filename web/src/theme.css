@@ -242,3 +242,90 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 @media (min-width: 861px) {
   .thread .back { display: none; }
 }
+
+/* ===========================================================================
+   Refinement layer — Modules B/C (Atendimento, Campanhas, Studio, Biblioteca)
+   Additive only: every class above is preserved.
+   =========================================================================== */
+
+/* form fields — unify the previously-inline inputs */
+.field {
+  background: var(--bg-2); border: 1px solid var(--line); color: var(--text);
+  padding: 10px 12px; border-radius: 10px; font-family: "Rajdhani", sans-serif;
+  font-size: 15px; width: 100%; transition: border-color .15s, box-shadow .15s;
+}
+.field:focus { outline: none; border-color: var(--primary); box-shadow: var(--glow); }
+textarea.field { min-height: 92px; resize: vertical; line-height: 1.4; }
+.field-label { font-family: "Share Tech Mono"; font-size: 10px; color: var(--muted-2); letter-spacing: .08em; text-transform: uppercase; }
+
+/* layout helpers */
+.formstack { display: grid; gap: 10px; }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+.row-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+/* panel — static content card (distinct from the clickable .sess) */
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+.panel > .ptitle {
+  font-family: "Orbitron"; font-size: 12px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .08em; margin: 0 0 13px; display: flex; align-items: center; gap: 9px;
+}
+.panel > .ptitle::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 8px var(--primary); }
+
+/* real tabs */
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; margin: 8px 0 20px; border-bottom: 1px solid var(--line); }
+.tab {
+  background: transparent; border: 1px solid transparent; border-bottom: 0; color: var(--muted);
+  padding: 9px 15px; border-radius: 10px 10px 0 0; font-weight: 600; font-size: 13px;
+  letter-spacing: .02em; position: relative; top: 1px; transition: color .15s, background .15s;
+}
+.tab:hover { color: var(--text); }
+.tab.on { color: var(--text); background: var(--panel); border-color: var(--line); box-shadow: inset 0 2px 0 var(--primary); }
+
+/* progress bar (campaigns) */
+.progress { height: 7px; background: rgba(255, 255, 255, .07); border-radius: 6px; overflow: hidden; margin-top: 8px; }
+.progress > i { display: block; height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); box-shadow: 0 0 10px rgba(0, 240, 255, .3); transition: width .5s cubic-bezier(.22, 1, .36, 1); }
+
+/* media library */
+.media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.media-tile {
+  background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; padding: 14px 12px;
+  text-align: left; color: var(--text); display: grid; gap: 6px; transition: border-color .15s, transform .1s;
+}
+.media-tile:hover { border-color: var(--line-2); transform: translateY(-2px); }
+.media-tile .ico { font-size: 22px; line-height: 1; }
+.breadcrumb { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; font-family: "Share Tech Mono"; font-size: 12px; }
+.breadcrumb button { background: transparent; border: 0; color: var(--primary); padding: 2px 4px; cursor: pointer; }
+.breadcrumb .sep { color: var(--muted-2); }
+
+/* chips */
+.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--bg-3); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-size: 12px; }
+
+/* animated loading */
+.loading { color: var(--muted); display: flex; align-items: center; gap: 10px; padding: 22px 0; }
+.loading::before { content: ""; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line-2); border-top-color: var(--primary); animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* .sess used as a static card in the new screens */
+.sess.static { cursor: default; }
+.sess.static:hover { background: transparent; }
+
+/* section heading + focus ring */
+.h2 { font-family: "Orbitron"; font-weight: 700; font-size: 16px; margin: 24px 0 12px; color: var(--text); }
+:focus-visible { outline: 2px solid rgba(0, 240, 255, .55); outline-offset: 2px; }
+
+@media (max-width: 860px) { .split { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .loading::before { animation: none; } }
+
+/* voice orb (Módulo Voz, absorvido do voz-panel) */
+.voice-orb { position: relative; width: 280px; height: 280px; display: grid; place-items: center; margin: 10px auto 24px; }
+.voice-orb .core {
+  width: 180px; height: 180px; border-radius: 50%; display: grid; place-items: center; text-align: center; gap: 4px;
+  background: radial-gradient(circle at 50% 38%, rgba(0, 240, 255, .14), rgba(168, 85, 247, .06));
+  border: 1px solid rgba(0, 240, 255, .38);
+  box-shadow: inset 0 0 50px rgba(0, 240, 255, .16), 0 0 42px rgba(0, 240, 255, .14);
+}
+.voice-orb .ring { position: absolute; border-radius: 50%; border: 1px solid rgba(0, 240, 255, .25); animation: orbpulse 3.2s ease-in-out infinite; pointer-events: none; }
+.voice-orb .ring { width: 230px; height: 230px; }
+.voice-orb .ring.r2 { width: 280px; height: 280px; border-color: rgba(168, 85, 247, .22); animation-delay: .6s; }
+@keyframes orbpulse { 0%, 100% { transform: scale(1); opacity: .45; } 50% { transform: scale(1.04); opacity: .9; } }
+@media (prefers-reduced-motion: reduce) { .voice-orb .ring { animation: none; } }

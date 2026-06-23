@@ -12,9 +12,12 @@
 ---
 
 FGOS é a plataforma modular da **FAT Tech** para operar uma agência de marketing de ponta a ponta:
-produtividade (estilo ClickUp/Monday), social/ads (Hootsuite), mensageria com IA (ManyChat),
-CRM com funil Kanban (Pipedrive) e BI consolidado (PowerBI) — tudo costurado por uma
-**coluna vertebral orientada a eventos**.
+produtividade (ClickUp/Monday), social/ads + **agendador com repost** (Hootsuite/Stackposts),
+mensageria com IA + **atendimento multi-agente** e **campanhas** (ManyChat/WhatICket), CRM com funil
+Kanban (Pipedrive), **agente de voz** (ElevenLabs Convai), **growth/conteúdo** com brand voice +
+filtro anti-slop, e BI consolidado (PowerBI) — tudo costurado por uma **coluna vertebral orientada a
+eventos**. Boa parte dos módulos B/C/Voz/Growth foi destilada por engenharia reversa de SaaS de
+referência e **reescrita como código original** (ver [docs/REVERSE-ENGINEERING-KB.md](docs/REVERSE-ENGINEERING-KB.md)).
 
 A decisão central, validada após várias iterações de arquitetura: **n8n não é o barramento do
 sistema**. O caminho quente usa **FastAPI + Redis Streams + workers finos em Python**. O n8n entra
@@ -64,10 +67,12 @@ Regras inegociáveis do barramento (ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE
 |---|---|---|---|
 | **A — Produtividade** | ClickUp / Monday | ✅ API + eventos | `workspaces`, `lists`, `items` (JSONB + `version`) |
 | **D — CRM** | Pipedrive | ✅ API + Kanban move (409) | `pipelines`, `stages`, `deals` (`value_cents`) |
-| **B — Social/Ads** | Hootsuite | ✅ fila `SKIP LOCKED` + backoff por conta + OAuth (dry-run) | `social_accounts`, `posts_queue` |
-| **C — Mensageria/IA** | ManyChat | ✅ debounce + state machine + IA externa + handoff (dry-run) | `contacts`, `chat_sessions`, `messages` |
+| **B — Social/Ads** | Hootsuite / Stackposts | ✅ fila `SKIP LOCKED` + backoff + OAuth + **repost** + **captions/mídia** | `social_accounts`, `posts_queue`, `captions`, `media_files` |
+| **C — Mensageria/IA** | ManyChat / WhatICket | ✅ debounce + IA + **Atendimento** (tickets/filas/chatbot/n8n) + **Campanhas** + **templates** | `contacts`, `messages`, `tickets`, `queues`, `campaigns` |
 | **E — BI** | PowerBI | ✅ micro-batch → ClickHouse + API de leitura + dashboard ECharts | `events_log` (MergeTree) |
 | **Acesso** | Auth + Onboarding | ✅ login JWT multi-tenant + signup self-service white-label | `app_users`, `agencies` (slug/branding) |
+| **Voz** | ElevenLabs Convai | ✅ agente de voz por agência + painel holográfico | `voice_agents` |
+| **Growth** | growthOS (brand voice) | ✅ brand voice + content pieces (draft→approved→published) + **lint anti-slop** | `brand_voices`, `content_pieces` |
 
 ## MVP — espinha em 4 comandos
 
@@ -107,9 +112,11 @@ após `fgos seed`: `dev@fgos.local` / `fgosdev`. Tema por agência via `/onboard
 
 ## Web App (SPA operável)
 
-React + Vite + TypeScript em `web/` — **6 telas** consumindo a API: Login, Dashboard (BI),
-CRM Kanban, Mensageria (inbox + chat), Social/Ads (contas + agendamento) e Workspace. Responsivo
-(drawer no mobile), tema cyber FAT Tech.
+React + Vite + TypeScript em `web/` — **12 telas** consumindo a API: Login, Dashboard (BI),
+CRM Kanban, Mensageria, **Atendimento** (inbox multi-agente), **Campanhas** (bulk + progresso),
+**Studio** (chatbot / integrações n8n / templates), **Biblioteca** (captions + mídia), **Voz**
+(widget Convai + orbe holográfico), **Growth** (brand voice + conteúdo + lint), Social/Ads e
+Workspace. Client tipado (`web/src/lib/api.ts`), responsivo (drawer no mobile), tema cyber FAT Tech.
 
 ```powershell
 cd web
@@ -158,6 +165,8 @@ python -m compileall src
 | [docs/EXTRACTION-INTEGRATION-KB.md](docs/EXTRACTION-INTEGRATION-KB.md) | Rota alternativa de escala: integrar OSS (Plane/Twenty/Postiz/Evolution/Superset) |
 | [docs/COMPETITOR-IMPULSE-CRM.md](docs/COMPETITOR-IMPULSE-CRM.md) | Engenharia reversa do concorrente Impulse CRM + mapeamento → FGOS + oportunidades de roadmap |
 | [docs/CORE-ENGINE-ARCHITECTURE.md](docs/CORE-ENGINE-ARCHITECTURE.md) | Decisões condensadas do runtime |
+| [docs/REVERSE-ENGINEERING-KB.md](docs/REVERSE-ENGINEERING-KB.md) | RE de 6 SaaS (WhatICket/Stackposts/WASender) → mapa de absorção p/ FGOS |
+| [docs/ATENDIMENTO-INTEGRATION-REPORT.md](docs/ATENDIMENTO-INTEGRATION-REPORT.md) | Entrega Atendimento + Fases B/C (ADR, code-review, process-doc, tech-debt) |
 | [CHANGELOG.md](CHANGELOG.md) | Histórico por fase do roadmap |
 | [neural-base/](neural-base/) | Base de conhecimento para agentes de IA (knowledge graph, facts, ADRs, glossário) |
 
@@ -172,6 +181,14 @@ python -m compileall src
 | **4** ✅ | BI: API de leitura ClickHouse + dashboard ECharts (`/dashboard`) |
 | **5** ✅ | Auth JWT multi-tenant + onboarding self-service + casca white-label (`/onboarding`) |
 | **6** ✅ | Web App React completo (6 telas operáveis + responsivo + UI/UX), compila de verdade; base mobile pronta |
+| **7** ✅ | Hardening IDOR + rate-limit login + CI ativo |
+| **8** ✅ | **Atendimento** (Ticket/Queue/Chatbot/Integração n8n) — absorvido do WhatICket |
+| **9** ✅ | **Campanhas** (bulk + rotação anti-ban) + worker de disparo |
+| **10** ✅ | **Templates** / quick replies |
+| **11** ✅ | **Scheduler social** (repost) + biblioteca de captions/mídia — absorvido do Stackposts |
+| **12** ✅ | **Voz** (agente ElevenLabs Convai + painel) — absorvido do fat-tech-voz-panel |
+| **13** ✅ | **Growth** (brand voice + content pieces + lint anti-slop) — absorvido do fat-tech-growthOS |
+| **14** ✅ | Revisão de banco: índice em **todas as 25 FKs** + auditoria multi-tenant (0 gaps reais) |
 
 ## Operação
 
