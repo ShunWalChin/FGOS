@@ -21,6 +21,7 @@ from core_engine.api.ingest import router as ingest_router
 from core_engine.api.onboarding import router as onboarding_router
 from core_engine.api.social import router as social_router
 from core_engine.api.social_extras import router as social_extras_router
+from core_engine.api.video import router as video_router
 from core_engine.api.voice import router as voice_router
 from core_engine.api.workspaces import router as workspaces_router
 from core_engine.bus import RedisStreamBus
@@ -65,6 +66,7 @@ def build_app(settings: Settings | None = None, bus: RedisStreamBus | None = Non
     app.include_router(social_router)
     app.include_router(social_extras_router)
     app.include_router(voice_router)
+    app.include_router(video_router)
     app.include_router(growth_router)
     app.include_router(ai_router)
     app.include_router(audit_router)

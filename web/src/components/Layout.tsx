@@ -12,6 +12,7 @@ const NAV: Array<[string, string, string]> = [
   ["/biblioteca", "▤", "Biblioteca"],
   ["/voz", "◉", "Voz"],
   ["/growth", "✷", "Growth"],
+  ["/video", "▶", "Vídeo"],
   ["/ia", "✺", "IA"],
   ["/auditoria", "⊡", "Auditoria"],
   ["/social", "◈", "Social/Ads"],

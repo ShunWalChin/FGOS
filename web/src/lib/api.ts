@@ -295,6 +295,14 @@ export interface AIModel {
   has_key: boolean;
   created_at: string;
 }
+export interface VideoProject {
+  id: string;
+  name: string;
+  content_piece_id: string | null;
+  editor_url: string;
+  status: string;
+  created_at: string;
+}
 
 const q = (params: Record<string, string | number>): string =>
   "?" +
@@ -486,4 +494,12 @@ export const api = {
   setDefaultAiModel: (id: string) => req<{ id: string }>(`/api/ai-models/${id}/default`, { method: "PATCH" }),
   deleteAiModel: (id: string) => req<void>(`/api/ai-models/${id}`, { method: "DELETE" }),
   testAiModel: (id: string) => req<{ ok: boolean; detail: string }>(`/api/ai-models/${id}/test`, { method: "POST" }),
+
+  // Vídeo — OpenCut companion editor
+  videoProjects: (agencyId: string) => req<VideoProject[]>("/api/video-projects" + q({ agency_id: agencyId })),
+  createVideoProject: (body: { name: string; content_piece_id?: string; editor_url?: string }) =>
+    req<{ id: string }>("/api/video-projects", { method: "POST", body: JSON.stringify(body) }),
+  updateVideoProject: (id: string, status: string) =>
+    req<{ id: string; status: string }>(`/api/video-projects/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  deleteVideoProject: (id: string) => req<void>(`/api/video-projects/${id}`, { method: "DELETE" }),
 };
