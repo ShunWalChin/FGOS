@@ -259,6 +259,30 @@ export interface ContentPiece {
   brand_voice_id: string | null;
   updated_at: string | null;
 }
+export interface AuditEvent {
+  occurred_at: string;
+  event_type: string;
+  entity_id: string;
+  trace_id: string;
+  hops: number;
+  event_id: string;
+  meta: string;
+}
+export interface TraceStep {
+  occurred_at: string;
+  event_type: string;
+  entity_id: string;
+  hops: number;
+  event_id: string;
+  meta: string;
+}
+export interface TicketAudit {
+  ticket_id: string;
+  action: string;
+  detail: string | null;
+  contact: string;
+  at: string;
+}
 
 const q = (params: Record<string, string | number>): string =>
   "?" +
@@ -435,4 +459,10 @@ export const api = {
     }),
   generateContent: (body: { type: string; title: string; prompt: string; platform?: string; brand_voice_id?: string }) =>
     req<{ id: string; status: string }>("/api/content-pieces/generate", { method: "POST", body: JSON.stringify(body) }),
+
+  // Auditoria / Console (kairos pattern)
+  auditEvents: (eventType?: string) =>
+    req<AuditEvent[]>("/api/audit/events" + q(eventType ? { event_type: eventType, limit: 120 } : { limit: 120 })),
+  auditTrace: (traceId: string) => req<TraceStep[]>(`/api/audit/trace/${traceId}`),
+  auditTickets: () => req<TicketAudit[]>("/api/audit/tickets" + q({ limit: 120 })),
 };

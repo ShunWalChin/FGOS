@@ -34,6 +34,9 @@ class ClickHouseEventBatcher:
                 entity_id,
                 value_cents,
                 json.dumps(event.data, ensure_ascii=True, default=str),
+                str(event.trace_id),
+                int(event.hops),
+                str(event.event_id),
             )
         )
         if self.should_flush():
@@ -59,6 +62,9 @@ class ClickHouseEventBatcher:
                 "entity_id",
                 "value_cents",
                 "meta",
+                "trace_id",
+                "hops",
+                "event_id",
             ],
         )
         self.last_flush = time.monotonic()

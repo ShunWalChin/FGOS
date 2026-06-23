@@ -12,6 +12,7 @@ import Studio from "./pages/Studio";
 import Biblioteca from "./pages/Biblioteca";
 import Voz from "./pages/Voz";
 import Growth from "./pages/Growth";
+import Auditoria from "./pages/Auditoria";
 import Social from "./pages/Social";
 import Workspace from "./pages/Workspace";
 
@@ -37,6 +38,7 @@ export default function App() {
             <Route path="/biblioteca" element={<Biblioteca />} />
             <Route path="/voz" element={<Voz />} />
             <Route path="/growth" element={<Growth />} />
+            <Route path="/auditoria" element={<Auditoria />} />
             <Route path="/social" element={<Social />} />
             <Route path="/workspace" element={<Workspace />} />
           </Route>
