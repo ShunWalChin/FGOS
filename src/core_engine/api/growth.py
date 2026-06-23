@@ -16,7 +16,10 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import text
 
 from core_engine.api.deps import Principal, get_principal
+from core_engine.bus import RedisStreamBus
 from core_engine.db import session_scope
+from core_engine.events import Actor, EventEnvelope
+from core_engine.settings import Settings
 
 router = APIRouter(prefix="/api", tags=["growth"])
 
@@ -66,8 +69,25 @@ class LintIn(BaseModel):
     brand_voice_id: UUID | None = None
 
 
+class GenerateIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    type: str
+    title: str = Field(min_length=1, max_length=300)
+    prompt: str = Field(min_length=1)
+    platform: str | None = None
+    brand_voice_id: UUID | None = None
+
+
 def _factory(request: Request):
     return request.app.state.session_factory
+
+
+def _settings(request: Request) -> Settings:
+    return request.app.state.settings
+
+
+def _bus(request: Request) -> RedisStreamBus:
+    return request.app.state.bus
 
 
 def _as_list(v: Any) -> list[str]:
@@ -222,3 +242,37 @@ async def lint_content(
     low = payload.body.lower()
     violations = sorted({b for b in banned if b and b.lower() in low})
     return {"ok": not violations, "violations": violations, "checked": len(set(banned))}
+
+
+@router.post("/content-pieces/generate", status_code=status.HTTP_201_CREATED)
+async def generate_content(
+    payload: GenerateIn, request: Request, principal: Principal = Depends(get_principal)
+) -> dict[str, str]:
+    """Queue a content piece for generation. worker-content picks up status='requested', writes a
+    brand-voice-aware draft (dry-run unless LLM is live) and flips it to status='draft'."""
+    async with session_scope(_factory(request)) as session:
+        if payload.brand_voice_id is not None:
+            owns = await session.execute(
+                text("select 1 from brand_voices where id = :b and agency_id = :a"),
+                {"b": str(payload.brand_voice_id), "a": str(principal.agency_id)},
+            )
+            if owns.first() is None:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="brand_voice not found")
+        result = await session.execute(
+            text(
+                "insert into content_pieces(agency_id, brand_voice_id, type, platform, title, prompt, status) "
+                "values (:a, :b, :ty, :pl, :t, :pr, 'requested') returning id"
+            ),
+            {"a": str(principal.agency_id),
+             "b": str(payload.brand_voice_id) if payload.brand_voice_id else None,
+             "ty": payload.type, "pl": payload.platform, "t": payload.title, "pr": payload.prompt},
+        )
+        content_id = str(result.scalar_one())
+
+    await _bus(request).publish(_settings(request).stream_events, EventEnvelope(
+        event="growth.content.requested",
+        agency_id=principal.agency_id,
+        actor=Actor(type="user", id="api"),
+        data={"content_id": content_id, "type": payload.type},
+    ))
+    return {"id": content_id, "status": "requested"}

@@ -3,7 +3,12 @@ import { api, type BrandVoice, type ContentPiece } from "../lib/api";
 import { useAuth } from "../lib/auth";
 
 type Tab = "brand" | "content";
-const statusPill: Record<string, string> = { draft: "amber", approved: "cyan", published: "green" };
+const statusPill: Record<string, string> = {
+  requested: "",
+  draft: "amber",
+  approved: "cyan",
+  published: "green",
+};
 
 export default function Growth() {
   const { user } = useAuth();
@@ -24,6 +29,7 @@ export default function Growth() {
   // content form
   const [cType, setCType] = useState("copy");
   const [cTitle, setCTitle] = useState("");
+  const [cPrompt, setCPrompt] = useState("");
   const [cBody, setCBody] = useState("");
   const [cVoice, setCVoice] = useState("");
   const [lint, setLint] = useState<{ ok: boolean; violations: string[] } | null>(null);
@@ -37,6 +43,8 @@ export default function Growth() {
 
   useEffect(() => {
     reload().catch((e) => setNotice(String(e))).finally(() => setLoading(false));
+    const t = setInterval(() => api.contentPieces().then(setPieces).catch(() => {}), 3000);
+    return () => clearInterval(t);
   }, [agencyId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const wrap = (fn: () => Promise<void>) => () => fn().catch((e) => setNotice(e instanceof Error ? e.message : "falha"));
@@ -58,9 +66,17 @@ export default function Growth() {
     await reload();
   }
 
+  async function generate() {
+    if (!cTitle.trim() || !cPrompt.trim()) return;
+    await api.generateContent({ type: cType, title: cTitle.trim(), prompt: cPrompt.trim(), brand_voice_id: cVoice || undefined });
+    setNotice("Conteúdo enfileirado — o worker está gerando o rascunho…");
+    setCPrompt("");
+    setCTitle("");
+    await reload();
+  }
+
   async function runLint() {
-    const r = await api.lintContent(cBody, cVoice || undefined);
-    setLint(r);
+    setLint(await api.lintContent(cBody, cVoice || undefined));
   }
 
   if (loading) return <div className="loading">Carregando growth…</div>;
@@ -107,50 +123,52 @@ export default function Growth() {
       )}
 
       {tab === "content" && (
-        <>
-          <div className="split">
-            <div className="panel formstack">
-              <div className="ptitle">Novo conteúdo</div>
-              <div className="row-actions">
-                <select className="field" style={{ maxWidth: 150 }} value={cType} onChange={(e) => setCType(e.target.value)}>
-                  {["copy", "carousel", "video_brief", "sales_page", "seo"].map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
-                <select className="field" value={cVoice} onChange={(e) => setCVoice(e.target.value)}>
-                  <option value="">brand voice…</option>
-                  {voices.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
-                </select>
-              </div>
-              <input className="field" placeholder="Título" value={cTitle} onChange={(e) => setCTitle(e.target.value)} />
-              <textarea className="field" style={{ minHeight: 110 }} placeholder="Corpo do conteúdo…" value={cBody} onChange={(e) => { setCBody(e.target.value); setLint(null); }} />
-              <div className="row-actions">
-                <button className="btn-ghost" onClick={wrap(runLint)} disabled={!cBody.trim()}>⚑ Lint anti-slop</button>
-                <button className="btn-primary" onClick={wrap(createContent)}>+ Conteúdo</button>
-              </div>
-              {lint && (
-                <div className="notice" style={{ borderLeftColor: lint.ok ? "var(--green)" : "var(--secondary)" }}>
-                  {lint.ok ? "✓ Sem clichês/anti-slop." : `⚠ ${lint.violations.length} flag(s): ${lint.violations.join(", ")}`}
-                </div>
-              )}
+        <div className="split">
+          <div className="panel formstack">
+            <div className="ptitle">Produzir conteúdo</div>
+            <div className="row-actions">
+              <select className="field" style={{ maxWidth: 150 }} value={cType} onChange={(e) => setCType(e.target.value)}>
+                {["copy", "carousel", "video_brief", "sales_page", "seo"].map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <select className="field" value={cVoice} onChange={(e) => setCVoice(e.target.value)}>
+                <option value="">brand voice…</option>
+                {voices.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
+              </select>
             </div>
-            <div className="panel formstack">
-              <div className="ptitle">Conteúdos</div>
-              {pieces.length === 0 && <div className="empty">Nenhum conteúdo.</div>}
-              {pieces.map((p) => (
-                <div key={p.id} className="sess static">
-                  <div className="top">
-                    <span className="nm ellipsis">{p.title}</span>
-                    <span className={"pill " + (statusPill[p.status] ?? "")}>{p.status}</span>
-                  </div>
-                  <div className="muted mono" style={{ fontSize: 11 }}>{p.type}{p.platform ? ` · ${p.platform}` : ""}</div>
-                  <div className="row-actions" style={{ marginTop: 8 }}>
-                    {p.status === "draft" && <button className="btn-ghost" onClick={() => api.updateContent(p.id, { status: "approved" }).then(reload)}>Aprovar</button>}
-                    {p.status === "approved" && <button className="btn-ghost" onClick={() => api.updateContent(p.id, { status: "published" }).then(reload)}>Publicar</button>}
-                  </div>
-                </div>
-              ))}
+            <input className="field" placeholder="Título" value={cTitle} onChange={(e) => setCTitle(e.target.value)} />
+            <input className="field" placeholder="Brief / prompt para gerar com IA" value={cPrompt} onChange={(e) => setCPrompt(e.target.value)} />
+            <button className="btn-primary" onClick={wrap(generate)} disabled={!cTitle.trim() || !cPrompt.trim()}>✨ Gerar com IA (worker)</button>
+            <span className="field-label">— ou escreva manualmente —</span>
+            <textarea className="field" style={{ minHeight: 90 }} placeholder="Corpo do conteúdo…" value={cBody} onChange={(e) => { setCBody(e.target.value); setLint(null); }} />
+            <div className="row-actions">
+              <button className="btn-ghost" onClick={wrap(runLint)} disabled={!cBody.trim()}>⚑ Lint anti-slop</button>
+              <button className="btn-ghost" onClick={wrap(createContent)} disabled={!cTitle.trim()}>+ Conteúdo manual</button>
             </div>
+            {lint && (
+              <div className="notice" style={{ borderLeftColor: lint.ok ? "var(--green)" : "var(--secondary)" }}>
+                {lint.ok ? "✓ Sem clichês/anti-slop." : `⚠ ${lint.violations.length} flag(s): ${lint.violations.join(", ")}`}
+              </div>
+            )}
           </div>
-        </>
+          <div className="panel formstack">
+            <div className="ptitle">Conteúdos</div>
+            {pieces.length === 0 && <div className="empty">Nenhum conteúdo.</div>}
+            {pieces.map((p) => (
+              <div key={p.id} className="sess static">
+                <div className="top">
+                  <span className="nm ellipsis">{p.title}</span>
+                  <span className={"pill " + (statusPill[p.status] ?? "")}>{p.status === "requested" ? "gerando…" : p.status}</span>
+                </div>
+                <div className="muted mono" style={{ fontSize: 11 }}>{p.type}{p.platform ? ` · ${p.platform}` : ""}</div>
+                {p.body && <div className="muted" style={{ fontSize: 12, marginTop: 6, whiteSpace: "pre-wrap" }}>{p.body.slice(0, 220)}{p.body.length > 220 ? "…" : ""}</div>}
+                <div className="row-actions" style={{ marginTop: 8 }}>
+                  {p.status === "draft" && <button className="btn-ghost" onClick={() => api.updateContent(p.id, { status: "approved" }).then(reload)}>Aprovar</button>}
+                  {p.status === "approved" && <button className="btn-ghost" onClick={() => api.updateContent(p.id, { status: "published" }).then(reload)}>Publicar</button>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );

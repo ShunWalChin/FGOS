@@ -7,7 +7,7 @@ import uvicorn
 
 from core_engine import seed as seed_module
 from core_engine.settings import get_settings
-from core_engine.workers import bi, campaigns, messaging, router, social
+from core_engine.workers import bi, campaigns, content, messaging, router, social
 
 cli = typer.Typer(help="Core-Engine operational entry point.")
 worker_cli = typer.Typer(help="Run background workers.")
@@ -63,6 +63,11 @@ def worker_bi() -> None:
 @worker_cli.command("campaigns")
 def worker_campaigns() -> None:
     asyncio.run(campaigns.run())
+
+
+@worker_cli.command("content")
+def worker_content() -> None:
+    asyncio.run(content.run())
 
 
 if __name__ == "__main__":

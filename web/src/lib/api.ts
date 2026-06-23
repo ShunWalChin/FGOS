@@ -433,4 +433,6 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ body: text, brand_voice_id: brandVoiceId }),
     }),
+  generateContent: (body: { type: string; title: string; prompt: string; platform?: string; brand_voice_id?: string }) =>
+    req<{ id: string; status: string }>("/api/content-pieces/generate", { method: "POST", body: JSON.stringify(body) }),
 };
