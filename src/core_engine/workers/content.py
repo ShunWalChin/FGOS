@@ -18,6 +18,7 @@ from sqlalchemy import text
 from core_engine.bus import RedisStreamBus
 from core_engine.db import create_session_factory, session_scope
 from core_engine.events import Actor, EventEnvelope
+from core_engine.providers.llm_live import resolve_agency_provider
 from core_engine.settings import Settings, get_settings
 
 logger = logging.getLogger(__name__)
@@ -124,17 +125,37 @@ async def _claim_and_generate(session, bus: RedisStreamBus, settings: Settings) 
         ).mappings().first()
         brand = dict(brand) if brand else None
 
-    body = _generate_draft(dict(row), brand)
-    live = bool(getattr(settings, "messaging_llm_live", False))
+    body = _generate_draft(dict(row), brand)   # dry-run fallback
+    model_used = "dry-run"
+    try:
+        provider = await resolve_agency_provider(session, str(row["agency_id"]), settings.token_encryption_key)
+        if provider is not None:
+            tone = ", ".join(_as_list((brand or {}).get("tone"))) if brand else "claro e direto"
+            avoid = ", ".join(_as_list((brand or {}).get("avoid"))) if brand else ""
+            sysmsg = (
+                f"Você é redator da marca {(brand or {}).get('name') or 'FAT Tech'}. "
+                f"Tom: {tone}. Evite clichês como: {avoid or 'disruptivo, revolucionário'}. "
+                f"Produza um {row['type']} para {row['platform'] or 'redes sociais'}, "
+                f"em português, pronto para publicar."
+            )
+            reply = await provider.complete(system=sysmsg, history=[], user=row["prompt"] or row["title"])
+            if reply.text.strip():
+                body = reply.text.strip()
+                model_used = reply.model
+    except Exception:
+        logger.exception("live LLM generation failed; falling back to dry-run draft")
+
+    banned = list(DEFAULT_BANNED) + (_as_list((brand or {}).get("avoid")) if brand else [])
+    body = _strip_banned(body, banned)
     await session.execute(
         text("update content_pieces set body = :b, status = 'draft', model = :m, updated_at = now() where id = :id"),
-        {"b": body, "m": ("llm" if live else "dry-run"), "id": str(row["id"])},
+        {"b": body, "m": model_used, "id": str(row["id"])},
     )
     await _publish(bus, settings, EventEnvelope(
         event="growth.content.generated",
         agency_id=row["agency_id"],
         actor=Actor(type="system", id="worker-content"),
-        data={"content_id": str(row["id"]), "type": row["type"], "live": live},
+        data={"content_id": str(row["id"]), "type": row["type"], "model": model_used},
     ))
     logger.info("content generated", extra={"content_id": str(row["id"]), "type": row["type"]})
     return True

@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from core_engine.api.ai import router as ai_router
 from core_engine.api.atendimento import router as atendimento_router
 from core_engine.api.audit import router as audit_router
 from core_engine.api.auth import router as auth_router
@@ -65,6 +66,7 @@ def build_app(settings: Settings | None = None, bus: RedisStreamBus | None = Non
     app.include_router(social_extras_router)
     app.include_router(voice_router)
     app.include_router(growth_router)
+    app.include_router(ai_router)
     app.include_router(audit_router)
     app.include_router(chat_router)
     app.include_router(atendimento_router)

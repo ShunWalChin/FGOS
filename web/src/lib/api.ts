@@ -283,6 +283,18 @@ export interface TicketAudit {
   contact: string;
   at: string;
 }
+export interface AIModel {
+  id: string;
+  provider: string;
+  label: string;
+  model: string;
+  base_url: string | null;
+  is_default: boolean;
+  status: string;
+  last_error: string | null;
+  has_key: boolean;
+  created_at: string;
+}
 
 const q = (params: Record<string, string | number>): string =>
   "?" +
@@ -465,4 +477,13 @@ export const api = {
     req<AuditEvent[]>("/api/audit/events" + q(eventType ? { event_type: eventType, limit: 120 } : { limit: 120 })),
   auditTrace: (traceId: string) => req<TraceStep[]>(`/api/audit/trace/${traceId}`),
   auditTickets: () => req<TicketAudit[]>("/api/audit/tickets" + q({ limit: 120 })),
+
+  // IA — LLM models / API keys
+  aiProviders: () => req<{ providers: string[]; suggested: Record<string, string[]> }>("/api/ai-models/providers"),
+  aiModels: (agencyId: string) => req<AIModel[]>("/api/ai-models" + q({ agency_id: agencyId })),
+  createAiModel: (body: { provider: string; label: string; model: string; api_key: string; base_url?: string; make_default?: boolean }) =>
+    req<{ id: string }>("/api/ai-models", { method: "POST", body: JSON.stringify(body) }),
+  setDefaultAiModel: (id: string) => req<{ id: string }>(`/api/ai-models/${id}/default`, { method: "PATCH" }),
+  deleteAiModel: (id: string) => req<void>(`/api/ai-models/${id}`, { method: "DELETE" }),
+  testAiModel: (id: string) => req<{ ok: boolean; detail: string }>(`/api/ai-models/${id}/test`, { method: "POST" }),
 };
