@@ -4,6 +4,10 @@
 > WhatsApp com IA para BPO/agências. Documento de **referência competitiva** para orientar o
 > roadmap do FGOS. A primeira metade mapeia Impulse → FGOS (o que importa pra nós); a segunda
 > preserva a engenharia reversa completa dos 21 módulos.
+>
+> Atualização 2026-06-23: a base estruturada mais completa está em
+> [COMPETITOR-TOMIKCRM-FUTURA-IA.md](COMPETITOR-TOMIKCRM-FUTURA-IA.md). Este arquivo continua como
+> síntese histórica; o novo documento é a fonte preferencial para entidades, endpoints e gaps.
 
 ---
 

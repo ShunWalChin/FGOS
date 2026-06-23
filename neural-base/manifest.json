@@ -1,8 +1,8 @@
 {
   "schema": "core-engine.neural-base/v1",
-  "project": "Project Core-Engine",
-  "exported_at": "2026-06-08",
-  "description": "Export completo da base de conhecimento do projeto em camadas humana, estruturada e vetorial.",
+  "project": "FGOS / Project Core-Engine",
+  "exported_at": "2026-06-23",
+  "description": "Export completo da base de conhecimento do projeto em camadas humana, estruturada, vetorial e de inteligencia competitiva TomikCRM/Futura IA.",
   "layers": {
     "human": [
       "00_MASTER_KNOWLEDGE_BASE.md",
@@ -15,6 +15,10 @@
       "decisions_adr.json",
       "glossary.json"
     ],
+    "sources": [
+      "sources/tomikcrm_futura_ia_2026-06-23.observed.json",
+      "sources/tomikcrm_futura_ia_2026-06-23.raw.txt"
+    ],
     "vector_pipeline": [
       "build_vector_index.py",
       "query_kb.py",
@@ -24,57 +28,67 @@
   "files": [
     {
       "name": "00_MASTER_KNOWLEDGE_BASE.md",
-      "bytes": 52937,
-      "sha256_16": "6f34b23daf17da26"
+      "bytes": 57510,
+      "sha256_16": "6e79d96a6dff9521"
     },
     {
       "name": "README.md",
-      "bytes": 2718,
-      "sha256_16": "7101cb50169e4038"
+      "bytes": 3504,
+      "sha256_16": "a3995fd59b141382"
     },
     {
       "name": "agent_primer.md",
-      "bytes": 3101,
-      "sha256_16": "c5c0b2e82b7ea141"
+      "bytes": 3945,
+      "sha256_16": "ba67095327ba9e88"
     },
     {
       "name": "build_vector_index.py",
-      "bytes": 4759,
-      "sha256_16": "ca0128e9a039bc06"
+      "bytes": 4893,
+      "sha256_16": "5a1e36da1894f1b6"
     },
     {
       "name": "decisions_adr.json",
-      "bytes": 3601,
-      "sha256_16": "784a62dfc6d441ed"
+      "bytes": 4467,
+      "sha256_16": "df844eabf1c62da2"
     },
     {
       "name": "facts.jsonl",
-      "bytes": 13789,
-      "sha256_16": "8906a309e4d057c8"
+      "bytes": 20032,
+      "sha256_16": "1a9261a83716a44d"
     },
     {
       "name": "glossary.json",
-      "bytes": 3121,
-      "sha256_16": "abcf6e3c5cee5b0c"
+      "bytes": 5315,
+      "sha256_16": "4dfa1be629aee03e"
     },
     {
       "name": "knowledge_graph.json",
-      "bytes": 11905,
-      "sha256_16": "15326f8e67b1b957"
+      "bytes": 19656,
+      "sha256_16": "78891cf418799032"
     },
     {
       "name": "query_kb.py",
-      "bytes": 1893,
-      "sha256_16": "8f4e876e4573237f"
+      "bytes": 1949,
+      "sha256_16": "a9947a419ec428c0"
     },
     {
       "name": "requirements.txt",
-      "bytes": 210,
-      "sha256_16": "f1834ac58f2008e4"
+      "bytes": 215,
+      "sha256_16": "cffe05dc19e877d5"
+    },
+    {
+      "name": "sources/tomikcrm_futura_ia_2026-06-23.observed.json",
+      "bytes": 40135,
+      "sha256_16": "ad518545277088cd"
+    },
+    {
+      "name": "sources/tomikcrm_futura_ia_2026-06-23.raw.txt",
+      "bytes": 33633,
+      "sha256_16": "5db9ed5004f39366"
     }
   ],
   "stats": {
-    "facts": 37,
-    "files": 10
+    "facts": 52,
+    "files": 12
   }
 }

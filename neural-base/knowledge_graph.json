@@ -1,8 +1,8 @@
 {
   "schema": "core-engine.kg/v1",
   "generated_for": "RAG, agent context, project memory",
-  "node_types": ["module", "repo", "component", "decision", "risk", "tech", "event"],
-  "edge_types": ["integrates_with", "depends_on", "emits", "consumes", "mitigates", "replaces", "runs_on", "licensed_under", "alternative_to", "built_by_us"],
+  "node_types": ["module", "repo", "component", "decision", "risk", "tech", "event", "competitor", "capability", "entity", "integration"],
+  "edge_types": ["integrates_with", "depends_on", "emits", "consumes", "mitigates", "replaces", "runs_on", "licensed_under", "alternative_to", "built_by_us", "observed_in", "maps_to", "prioritizes"],
   "nodes": [
     {"id": "mod.workspace", "type": "module", "label": "Workspace/Produtividade", "competitor": "ClickUp/Monday/Notion"},
     {"id": "mod.social", "type": "module", "label": "Social Media & Ads", "competitor": "Hootsuite/Buffer"},
@@ -10,6 +10,36 @@
     {"id": "mod.crm", "type": "module", "label": "CRM de Vendas", "competitor": "Pipedrive/Salesforce"},
     {"id": "mod.bi", "type": "module", "label": "Business Intelligence", "competitor": "PowerBI/Metabase"},
     {"id": "mod.backbone", "type": "module", "label": "Espinha Dorsal (Event Spine)"},
+    {"id": "mod.automation", "type": "module", "label": "Automação e Agentes de IA"},
+    {"id": "mod.management", "type": "module", "label": "Gestão, Agenda, Financeiro e Catálogo"},
+
+    {"id": "compref.tomikcrm", "type": "competitor", "label": "TomikCRM / Futura IA - CRM", "brand": "Tomik / Automatik Labs", "source": "docs/COMPETITOR-TOMIKCRM-FUTURA-IA.md", "role": "blueprint funcional, nao dependencia"},
+    {"id": "cap.live_chat_queue_sla", "type": "capability", "label": "Chat ao Vivo com fila, SLA e handoff IA/Híbrido/Humano", "priority": "P0"},
+    {"id": "cap.followups_silence_sequences", "type": "capability", "label": "Follow-ups por silêncio e sequências", "priority": "P0"},
+    {"id": "cap.bant_ai_scoring", "type": "capability", "label": "BANT, temperatura e classificação por IA no Kanban", "priority": "P1"},
+    {"id": "cap.whatsapp_templates_broadcast", "type": "capability", "label": "Templates WhatsApp e broadcast", "priority": "P1"},
+    {"id": "cap.product_rag_training", "type": "capability", "label": "RAG de produto e treinamento por organização", "priority": "P1"},
+    {"id": "cap.agent_runtime_builder", "type": "capability", "label": "Agent Runtime visual com sandbox, webhooks e memórias", "priority": "P2"},
+    {"id": "cap.appointments_calendar", "type": "capability", "label": "Agenda com Google Calendar", "priority": "P2"},
+    {"id": "cap.financial_products", "type": "capability", "label": "Financeiro, clientes, produtos e serviços", "priority": "P2"},
+    {"id": "cap.attendant_distribution", "type": "capability", "label": "Atendentes com round-robin, visibilidade e limites", "priority": "P0"},
+
+    {"id": "entity.messaging_conversation", "type": "entity", "label": "MessagingConversation", "table": "messaging_conversations"},
+    {"id": "entity.followup_tracker", "type": "entity", "label": "FollowUp / conversation_followup_tracker"},
+    {"id": "entity.ai_agent", "type": "entity", "label": "AIAgent"},
+    {"id": "entity.product_knowledge_base", "type": "entity", "label": "KnowledgeBase de produto"},
+    {"id": "entity.attendant", "type": "entity", "label": "Attendant"},
+    {"id": "entity.channel", "type": "entity", "label": "Channel (WABA/QR/IG/FB/Telegram)"},
+    {"id": "entity.appointment", "type": "entity", "label": "Appointment"},
+    {"id": "entity.client", "type": "entity", "label": "Client"},
+    {"id": "entity.product", "type": "entity", "label": "Product / ProductService"},
+
+    {"id": "int.supabase", "type": "integration", "label": "Supabase Auth/PostgREST/Realtime", "role": "observado no TomikCRM"},
+    {"id": "int.meta_waba", "type": "integration", "label": "Meta WABA / Cloud API", "role": "WhatsApp oficial"},
+    {"id": "int.whatsapp_qr", "type": "integration", "label": "WhatsApp QR unofficial_qr", "role": "WhatsApp nao oficial"},
+    {"id": "int.google_calendar", "type": "integration", "label": "Google Calendar OAuth"},
+    {"id": "int.elevenlabs", "type": "integration", "label": "ElevenLabs Voice AI"},
+    {"id": "int.stripe", "type": "integration", "label": "Stripe"},
 
     {"id": "repo.plane", "type": "repo", "label": "makeplane/plane", "stars": 50000, "license": "AGPL-3.0", "use_mode": "run-as-is", "integration": "REST+Webhooks+SDK+MCP"},
     {"id": "repo.twenty", "type": "repo", "label": "twentyhq/twenty", "stars": 47000, "license": "AGPL-3.0", "use_mode": "run-as-is", "integration": "GraphQL+REST+Webhooks+MCP"},
@@ -45,6 +75,7 @@
     {"id": "dec.cqrs", "type": "decision", "label": "CQRS: escrita no Postgres, leitura no ClickHouse", "rationale": "evita deadlock por query analítica no OLTP"},
     {"id": "dec.multibox", "type": "decision", "label": "Rota de integração exige multi-box", "rationale": "7 apps não cabem em 24GB; contradiz 'tudo num box'"},
     {"id": "dec.agpl_boundary", "type": "decision", "label": "Fronteira AGPL = processos separados por rede", "rationale": "falar por HTTP/eventos não contamina seu código; misturar contamina"},
+    {"id": "dec.tomik_blueprint", "type": "decision", "label": "TomikCRM é blueprint funcional, não dependência", "rationale": "usar produto observado para priorizar roadmap sem trocar marca, arquitetura ou acoplar Supabase/n8n como espinha"},
 
     {"id": "risk.rate_limit", "type": "risk", "label": "Rate limit 429 das APIs sociais", "module": "mod.social"},
     {"id": "risk.token_expiry", "type": "risk", "label": "Token OAuth expira silenciosamente", "module": "mod.social"},
@@ -67,6 +98,63 @@
     {"id": "mit.entity_map", "type": "component", "label": "app_entity_map", "desc": "fonte única de verdade de IDs entre apps"}
   ],
   "edges": [
+    {"from": "compref.tomikcrm", "type": "observed_in", "to": "docs/COMPETITOR-TOMIKCRM-FUTURA-IA.md"},
+    {"from": "dec.tomik_blueprint", "type": "observed_in", "to": "compref.tomikcrm"},
+    {"from": "dec.tomik_blueprint", "type": "depends_on", "to": "comp.event_spine"},
+
+    {"from": "cap.live_chat_queue_sla", "type": "observed_in", "to": "compref.tomikcrm"},
+    {"from": "cap.live_chat_queue_sla", "type": "maps_to", "to": "mod.messaging"},
+    {"from": "cap.live_chat_queue_sla", "type": "depends_on", "to": "entity.messaging_conversation"},
+    {"from": "cap.live_chat_queue_sla", "type": "prioritizes", "to": "cap.attendant_distribution"},
+
+    {"from": "cap.followups_silence_sequences", "type": "observed_in", "to": "compref.tomikcrm"},
+    {"from": "cap.followups_silence_sequences", "type": "maps_to", "to": "mod.messaging"},
+    {"from": "cap.followups_silence_sequences", "type": "depends_on", "to": "entity.followup_tracker"},
+    {"from": "cap.followups_silence_sequences", "type": "depends_on", "to": "mit.idempotency"},
+
+    {"from": "cap.bant_ai_scoring", "type": "observed_in", "to": "compref.tomikcrm"},
+    {"from": "cap.bant_ai_scoring", "type": "maps_to", "to": "mod.crm"},
+    {"from": "cap.bant_ai_scoring", "type": "depends_on", "to": "tech.llm_api"},
+    {"from": "cap.bant_ai_scoring", "type": "depends_on", "to": "mit.optimistic_lock"},
+
+    {"from": "cap.whatsapp_templates_broadcast", "type": "observed_in", "to": "compref.tomikcrm"},
+    {"from": "cap.whatsapp_templates_broadcast", "type": "maps_to", "to": "mod.social"},
+    {"from": "cap.whatsapp_templates_broadcast", "type": "maps_to", "to": "mod.messaging"},
+    {"from": "cap.whatsapp_templates_broadcast", "type": "depends_on", "to": "int.meta_waba"},
+    {"from": "cap.whatsapp_templates_broadcast", "type": "depends_on", "to": "int.whatsapp_qr"},
+
+    {"from": "cap.product_rag_training", "type": "observed_in", "to": "compref.tomikcrm"},
+    {"from": "cap.product_rag_training", "type": "maps_to", "to": "mod.automation"},
+    {"from": "cap.product_rag_training", "type": "depends_on", "to": "entity.product_knowledge_base"},
+    {"from": "cap.product_rag_training", "type": "depends_on", "to": "tech.llm_api"},
+
+    {"from": "cap.agent_runtime_builder", "type": "observed_in", "to": "compref.tomikcrm"},
+    {"from": "cap.agent_runtime_builder", "type": "maps_to", "to": "mod.automation"},
+    {"from": "cap.agent_runtime_builder", "type": "depends_on", "to": "entity.ai_agent"},
+    {"from": "cap.agent_runtime_builder", "type": "depends_on", "to": "comp.event_spine"},
+
+    {"from": "cap.appointments_calendar", "type": "observed_in", "to": "compref.tomikcrm"},
+    {"from": "cap.appointments_calendar", "type": "maps_to", "to": "mod.management"},
+    {"from": "cap.appointments_calendar", "type": "depends_on", "to": "entity.appointment"},
+    {"from": "cap.appointments_calendar", "type": "depends_on", "to": "int.google_calendar"},
+
+    {"from": "cap.financial_products", "type": "observed_in", "to": "compref.tomikcrm"},
+    {"from": "cap.financial_products", "type": "maps_to", "to": "mod.management"},
+    {"from": "cap.financial_products", "type": "depends_on", "to": "entity.client"},
+    {"from": "cap.financial_products", "type": "depends_on", "to": "entity.product"},
+    {"from": "cap.financial_products", "type": "depends_on", "to": "dec.money_cents"},
+
+    {"from": "cap.attendant_distribution", "type": "observed_in", "to": "compref.tomikcrm"},
+    {"from": "cap.attendant_distribution", "type": "maps_to", "to": "mod.messaging"},
+    {"from": "cap.attendant_distribution", "type": "depends_on", "to": "entity.attendant"},
+
+    {"from": "int.supabase", "type": "observed_in", "to": "compref.tomikcrm"},
+    {"from": "int.meta_waba", "type": "observed_in", "to": "compref.tomikcrm"},
+    {"from": "int.whatsapp_qr", "type": "observed_in", "to": "compref.tomikcrm"},
+    {"from": "int.google_calendar", "type": "observed_in", "to": "compref.tomikcrm"},
+    {"from": "int.elevenlabs", "type": "observed_in", "to": "compref.tomikcrm"},
+    {"from": "int.stripe", "type": "observed_in", "to": "compref.tomikcrm"},
+
     {"from": "mod.workspace", "type": "replaces", "to": "repo.plane"},
     {"from": "mod.crm", "type": "replaces", "to": "repo.twenty"},
     {"from": "mod.social", "type": "replaces", "to": "repo.postiz"},

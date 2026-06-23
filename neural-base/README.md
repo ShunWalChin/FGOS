@@ -12,6 +12,8 @@ Export de toda a engenharia do projeto em camadas: legível por humanos, estrutu
 | `facts.jsonl` | Fatos atômicos com metadados (unidades de embedding). | RAG |
 | `decisions_adr.json` | Decisões arquiteturais registradas (ADRs). | Time / auditoria |
 | `glossary.json` | Glossário de termos do projeto. | Onboarding |
+| `sources/tomikcrm_futura_ia_2026-06-23.raw.txt` | Anexo original observado do TomikCRM/Futura IA, preservado como veio. | Auditoria / RAG |
+| `sources/tomikcrm_futura_ia_2026-06-23.observed.json` | Versão JSON normalizada da parte íntegra do anexo, com metadados do truncamento. | Tooling / IA |
 | `build_vector_index.py` | Constrói o índice vetorial local (embeddings). | Engenharia |
 | `query_kb.py` | Consulta semântica ao índice. | Engenharia |
 | `requirements.txt` | Dependências do pipeline. | Engenharia |
@@ -34,13 +36,19 @@ O modelo `all-MiniLM-L6-v2` (~80MB) roda em CPU ARM. Depois do 1º download, tud
 **3. Como dados estruturados.**
 `knowledge_graph.json` e `facts.jsonl` alimentam dashboards, validações ou outro pipeline de IA. O grafo permite perguntas tipo "quais riscos o módulo de mensageria tem e o que os mitiga".
 
-## Princípios que regem tudo (resumo de 6 linhas)
+**4. Como inteligência competitiva.**
+Use `docs/COMPETITOR-TOMIKCRM-FUTURA-IA.md` e os arquivos em `sources/` para orientar roadmap de
+atendimento, follow-ups, BANT, RAG de produto, agenda, financeiro e catálogo. Esta referência não
+altera a arquitetura: cada entrega continua entrando como plug no barramento de eventos do FGOS.
+
+## Princípios que regem tudo (resumo de 7 linhas)
 1. Espinha = Redis Streams + consumidores finos, não n8n.
 2. LLM por API externa em produção.
 3. Integrar OSS como serviço, nunca colar código (proteção AGPL + manutenção).
 4. Você só constrói: SSO, Control Plane, Event Spine, BI embarcado, white-label.
 5. Dinheiro em centavos; imagens pinadas; `agency_id` em tudo.
 6. Integrar OSS exige multi-box — não cabe em 24 GB.
+7. TomikCRM/Futura IA é blueprint de produto, não dependência técnica nem mudança de marca.
 
 ## Como manter o export vivo
 Este é um snapshot. Ao mudar uma decisão: edite o `.md` correspondente, adicione/edite o fato em `facts.jsonl`, atualize o nó/aresta no grafo, e rode `build_vector_index.py` de novo. Versione o pacote junto com `core-infra`.

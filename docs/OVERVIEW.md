@@ -127,6 +127,11 @@ WhatsApp-first com IA), mapeada módulo a módulo para o FGOS, com as lacunas de
 (follow-ups por silêncio, fila/SLA de atendimento, BANT score, distribuição de atendentes, agenda,
 financeiro). Todas viáveis como novos "plugs" no mesmo barramento de eventos.
 
+[COMPETITOR-TOMIKCRM-FUTURA-IA.md](COMPETITOR-TOMIKCRM-FUTURA-IA.md) — base estruturada mais
+recente do TomikCRM/Futura IA, preservando stack observada, módulos, entidades, endpoints e a
+tradução explícita para regras FGOS. Use este documento como fonte preferencial para roadmap de
+atendimento, CRM, follow-ups, RAG de produto, agenda, financeiro e catálogo.
+
 ---
 
 Desenvolvido com IA pela **FAT Tech**.

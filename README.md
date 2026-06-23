@@ -164,6 +164,7 @@ python -m compileall src
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | **Fonte da verdade** — EDT completa: contrato de eventos, DDL, código crítico, CQRS, backups |
 | [docs/EXTRACTION-INTEGRATION-KB.md](docs/EXTRACTION-INTEGRATION-KB.md) | Rota alternativa de escala: integrar OSS (Plane/Twenty/Postiz/Evolution/Superset) |
 | [docs/COMPETITOR-IMPULSE-CRM.md](docs/COMPETITOR-IMPULSE-CRM.md) | Engenharia reversa do concorrente Impulse CRM + mapeamento → FGOS + oportunidades de roadmap |
+| [docs/COMPETITOR-TOMIKCRM-FUTURA-IA.md](docs/COMPETITOR-TOMIKCRM-FUTURA-IA.md) | Base observada do TomikCRM/Futura IA: módulos, entidades, endpoints, gaps e tradução para a arquitetura FGOS |
 | [docs/CORE-ENGINE-ARCHITECTURE.md](docs/CORE-ENGINE-ARCHITECTURE.md) | Decisões condensadas do runtime |
 | [docs/REVERSE-ENGINEERING-KB.md](docs/REVERSE-ENGINEERING-KB.md) | RE de 6 SaaS (WhatICket/Stackposts/WASender) → mapa de absorção p/ FGOS |
 | [docs/ATENDIMENTO-INTEGRATION-REPORT.md](docs/ATENDIMENTO-INTEGRATION-REPORT.md) | Entrega Atendimento + Fases B/C (ADR, code-review, process-doc, tech-debt) |

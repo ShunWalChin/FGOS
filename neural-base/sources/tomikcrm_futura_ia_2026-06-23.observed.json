@@ -1,0 +1,1299 @@
+{
+  "system": {
+    "name": "TomikCRM (Futura IA - CRM)",
+    "product_family": "TomikOS (AgentOS + CRM + Operação)",
+    "description": "Plataforma SaaS multi-tenant de gestão de atendimento, vendas, leads e automação com IA integrada",
+    "base_url": "https://crm.automatiklabs.com.br",
+    "hub_url": "https://crm.automatiklabs.com.br/hub",
+    "brand": "Tomik / Automatik Labs",
+    "loading_screen": "Carregando Futura IA - CRM...",
+    "themes": [
+      "dark",
+      "light"
+    ],
+    "current_tenant": "Futura AI Conference",
+    "plan": "TRIAL (expira 24/06/2026)"
+  },
+  "architecture": {
+    "frontend": {
+      "framework": "React (SPA - Single Page Application)",
+      "bundler": "Vite (assets com hash, ex: /assets/Leads-DB33jmxH.js)",
+      "routing": "Client-side routing (SPA)",
+      "state_management": "Signals (preact/signals padrão - arquivos *-signal-*.js)",
+      "ui_library": "Design System próprio (CRMDesignSystemWrapper)",
+      "icons": "Phosphor Icons (ex: ChatCircleDots.es, Robot.es, etc.)",
+      "charts": [
+        "AreaChart",
+        "PieChart",
+        "PolarChart"
+      ],
+      "error_monitoring": "Sentry (sentry.javascript.react 8.55.2)",
+      "analytics": "GTM customizado (gtm2.automatiklabs.com.br)",
+      "real_time": "Supabase Realtime / WebSockets"
+    },
+    "backend": {
+      "api_server": "https://tomikcrm.onrender.com",
+      "api_version": "v2",
+      "api_prefix": "/api/v2",
+      "database": "Supabase (PostgreSQL via PostgREST - /api/v2/master/rest/v1/)",
+      "rpc_functions": "/api/v2/master/rpc/",
+      "edge_functions": "https://edge.automatiklabs.com.br/functions/v1/",
+      "auth": "Supabase Auth (JWT + membership permissions)",
+      "realtime": "Supabase Realtime (WebSocket)",
+      "storage": "Supabase Storage",
+      "file_parsing": [
+        "papaparse (CSV)",
+        "xlsx (Excel)"
+      ],
+      "voice_ai": "ElevenLabs (ElevenLabsVoiceSelector)",
+      "ai_models": "OpenAI (openai-credential) + providers configuráveis",
+      "n8n_integration": "n8n (workflow automation - N8nConnectionModal, WorkflowSelectModal)"
+    },
+    "infrastructure": {
+      "hosting": "Render.com (backend API)",
+      "cdn_assets": "crm.automatiklabs.com.br/assets/",
+      "whatsapp_unofficial": "WhatsApp QR Code (unofficial_qr - wa-unofficial-client)",
+      "whatsapp_official": "WhatsApp Business API (WABA) - Meta Cloud API",
+      "instagram": "Meta API",
+      "facebook": "Meta API (Facebook Messenger)",
+      "telegram": "Telegram Bot API",
+      "google_calendar": "Google Calendar API (OAuth)",
+      "payment": "Stripe (stripe_customer_id, stripe_payment_method_id)",
+      "sentry_project": "4511305462972416"
+    }
+  },
+  "authentication": {
+    "type": "JWT + Supabase Auth",
+    "roles": [
+      "owner",
+      "admin",
+      "attendant"
+    ],
+    "multi_tenant": true,
+    "organization_model": "memberships (organization_id por tenant)",
+    "membership_id_example": "e02581b9-2d35-4878-967e-f463113dcd0a",
+    "endpoints": {
+      "get_user": "GET /api/v2/users/me",
+      "check_permissions": "GET /api/v2/memberships/{membership_id}/permissions",
+      "ensure_member": "POST /api/v2/master/rpc/ensure_member_user"
+    }
+  },
+  "modules": {
+    "ia_atendimento": {
+      "label": "IA & Atendimento",
+      "items": [
+        {
+          "name": "TomikAI (Estrategista)",
+          "route": "/app",
+          "icon": "brain/chip",
+          "description": "Agente IA de vendas com chat interno - analisa pipeline, identifica gargalos e sugere ações táticas",
+          "agent_name": "Estrategista",
+          "agent_capabilities": [
+            "Como está meu pipeline?",
+            "Quais leads devo priorizar?",
+            "Leads com SLA atrasado",
+            "Como estão minhas metas?",
+            "Resumo do dia"
+          ],
+          "features": {
+            "chat_with_ai": true,
+            "voice_input": "Whisper (gravar áudio)",
+            "multiple_agents": true,
+            "agent_selector": "dropdown de agentes disponíveis"
+          }
+        },
+        {
+          "name": "Chat ao Vivo",
+          "route": "/chat-live",
+          "icon": "chat bubble",
+          "description": "Central de atendimento em tempo real via WhatsApp, Instagram, Facebook",
+          "features": {
+            "conversation_list": {
+              "filters": [
+                "Todos",
+                "Minhas",
+                "Não atribuído"
+              ],
+              "tabs": [
+                "Todas",
+                "IA",
+                "Híbrido",
+                "Humano",
+                "Fila",
+                "Grupos"
+              ],
+              "search": "Buscar conversa...",
+              "unassigned_alert": true,
+              "badge_count": true
+            },
+            "conversation_view": {
+              "modes": [
+                "IA",
+                "Híbrido",
+                "Humano"
+              ],
+              "handoff": {
+                "assume": "Botão Assumir",
+                "fila_humana": true,
+                "atribuir_atendente": true
+              },
+              "memory": {
+                "types": [
+                  "Padrão",
+                  "outros"
+                ],
+                "actions": [
+                  "Memória ativa",
+                  "Criar",
+                  "Limpar memória"
+                ]
+              },
+              "message_composer": {
+                "text_input": "Digite uma mensagem...",
+                "emoji": true,
+                "audio_recording": true,
+                "custom_fields": true,
+                "file_upload": true,
+                "templates": true
+              },
+              "message_actions": [
+                "Reagir",
+                "Ações da mensagem"
+              ],
+              "acionar_agente": "enviar input simulado",
+              "bant_score": "0/4 · Frio/Morno/Quente"
+            },
+            "contact_sidebar": {
+              "tabs": [
+                "Contato",
+                "Scripts"
+              ],
+              "contact_info": {
+                "name": true,
+                "phone": true,
+                "whatsapp_window_24h": true,
+                "inbound_outbound_count": true,
+                "crm_lead_link": true
+              },
+              "actions": [
+                "Template",
+                "WhatsApp",
+                "Sincronizar com Lead"
+              ],
+              "related_conversations": true,
+              "channels": [
+                "WhatsApp Business API",
+                "unofficial_qr"
+              ]
+            },
+            "notification_alert": "2 conversas aguardando atendimento (2 há mais de 30min)"
+          },
+          "realtime_endpoints": [
+            "GET /api/v2/attendants/presence?organization_id=...&user_ids=...&online_window_minutes=3",
+            "GET /api/v2/master/rest/v1/messaging_conversations",
+            "GET /api/v2/master/rest/v1/conversation_followup_tracker"
+          ]
+        },
+        {
+          "name": "Contatos / Mensageria",
+          "route": "/conversations",
+          "icon": "contact",
+          "description": "Gerencie contatos, visualize contexto da conversa e acesse o Chat ao Vivo",
+          "features": {
+            "contact_list": {
+              "search": "Buscar por nome, telefone ou wa_id",
+              "hosted_type": "TomikHosted",
+              "add_contact": true
+            },
+            "contact_detail": {
+              "stats": [
+                "Conversas",
+                "Mensagens",
+                "Não lidas"
+              ],
+              "info": [
+                "telefone",
+                "wa_id",
+                "inbound",
+                "outbound",
+                "crm_lead_id"
+              ],
+              "related_conversations": true,
+              "actions": [
+                "Chat ao Vivo",
+                "Editar",
+                "Excluir"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Follow-ups",
+          "route": "/follow-ups",
+          "icon": "bell/arrow-cycle",
+          "description": "Sistema de follow-up automático por IA com sequências e monitoramento de silêncio",
+          "features": {
+            "dashboard": {
+              "metrics": [
+                "Pendentes agora",
+                "Silêncios ativos",
+                "Executados hoje",
+                "Taxa 30 dias de resposta",
+                "Falhas 7 dias"
+              ],
+              "ia_status": "IA ativa"
+            },
+            "tabs": [
+              {
+                "name": "Agendados por IA",
+                "status_filters": [
+                  "Todos",
+                  "Pendente",
+                  "Executando",
+                  "Concluído",
+                  "Falhou",
+                  "Cancelado"
+                ]
+              },
+              {
+                "name": "Por Silêncio",
+                "description": "Follow-ups disparados por ausência de resposta"
+              },
+              {
+                "name": "Sequências",
+                "description": "Fluxos de follow-up em cadência programada"
+              }
+            ],
+            "sub_menu": [
+              "Fila",
+              "Estratégias",
+              "Analytics"
+            ]
+          },
+          "endpoints": [
+            "GET /api/v2/master/rest/v1/followup_sequence_runs?organization_id=...&status=eq.active",
+            "GET /api/v2/master/rest/v1/conversation_followup_tracker"
+          ]
+        }
+      ]
+    },
+    "automacao": {
+      "label": "Automação",
+      "items": [
+        {
+          "name": "Agentes de IA",
+          "route": "/agent-runtime",
+          "icon": "chip/robot",
+          "description": "Builder de agentes de IA com fluxo, validação e publicação no WhatsApp/CRM/Agenda",
+          "badge": "PRO",
+          "tabs": [
+            {
+              "name": "Criar agentes",
+              "description": "Editor visual de agentes de IA"
+            },
+            {
+              "name": "Implementação guiada",
+              "steps": [
+                "CONEXAO: Conectar seu WhatsApp",
+                "O que é TomikOS (AgentOS + CRM + operação)",
+                "Arquitetura de Acessos e Organizações",
+                "Diferença entre usar Tomik com n8n ou Agente Interno",
+                "Escolha seu caminho",
+                "CONSTRUIR AGENTE: Construir Agente Integrado",
+                "TREINAR AGENTE: Criar Prompt do Agente"
+              ],
+              "total_steps": 7
+            },
+            {
+              "name": "Sandbox Lab",
+              "description": "Ambiente de teste de agentes"
+            },
+            {
+              "name": "Webhooks",
+              "description": "Configuração de webhooks de entrada e saída"
+            },
+            {
+              "name": "Captura de leads",
+              "description": "Configuração de captura automática de leads"
+            },
+            {
+              "name": "Integrações de pagamento",
+              "description": "Stripe e outros gateways"
+            },
+            {
+              "name": "Follow-ups",
+              "description": "Configuração de follow-ups automáticos"
+            },
+            {
+              "name": "Atendimento",
+              "description": "Perfis de atendimento (AttendanceProfilesPage, AttendanceProfileEditorPage)"
+            },
+            {
+              "name": "Memórias",
+              "description": "Gestão de memórias persistentes dos agentes"
+            }
+          ],
+          "integrations": [
+            "n8n",
+            "OpenAI",
+            "ElevenLabs",
+            "Stripe",
+            "WhatsApp",
+            "Google Calendar"
+          ]
+        },
+        {
+          "name": "Sistema de Treinamento",
+          "route": "/training",
+          "icon": "brain/training",
+          "description": "Q&A e gestão de prompt por organização para treinamento dos agentes",
+          "tabs": [
+            {
+              "name": "Treinar agente",
+              "description": "Interface principal de treinamento"
+            },
+            {
+              "name": "Rede Neural",
+              "description": "Visualização da rede de conhecimento"
+            },
+            {
+              "name": "Catalogo",
+              "description": "Catálogo de itens de treinamento"
+            },
+            {
+              "name": "Migrar planilha",
+              "description": "Importação de Q&A via CSV/Excel (papaparse, xlsx)"
+            },
+            {
+              "name": "Extrator do DNA",
+              "description": "Extração automática de conhecimento"
+            },
+            {
+              "name": "Q&A",
+              "description": "Pares pergunta-resposta para treinamento"
+            },
+            {
+              "name": "Gestão de prompt",
+              "description": "Editor e organização de prompts (PromptCreatorSidebar)"
+            }
+          ],
+          "actions": [
+            "Gerar com IA",
+            "Novo Q&A"
+          ],
+          "search": "Buscar pergunta/resposta..."
+        },
+        {
+          "name": "Base de Conhecimento",
+          "route": "/rag",
+          "icon": "database/book",
+          "description": "RAG - Retrieval Augmented Generation - bases de documentos para os agentes",
+          "features": {
+            "create_base": "Nova Base",
+            "base_attributes": [
+              "nome",
+              "descrição",
+              "documentos",
+              "chunks",
+              "status (Ativa/Inativa)"
+            ]
+          },
+          "entity": {
+            "name": "KnowledgeBase",
+            "fields": [
+              "id",
+              "name",
+              "description",
+              "document_count",
+              "chunk_count",
+              "status",
+              "organization_id"
+            ]
+          }
+        }
+      ]
+    },
+    "comunicacao": {
+      "label": "Comunicação",
+      "items": [
+        {
+          "name": "Conexões (Canais de Mensagens)",
+          "route": "/connection",
+          "icon": "wifi/plug",
+          "description": "Conecte WhatsApp, Instagram, Facebook, Telegram para centralizar conversas",
+          "channels": [
+            {
+              "name": "WhatsApp API Oficial (WABA)",
+              "type": "oficial",
+              "badge": "RECOMENDADO",
+              "steps": 6,
+              "description": "Número dedicado, sem banimento, automações completas",
+              "api": "Meta Cloud API"
+            },
+            {
+              "name": "WhatsApp QR Code",
+              "type": "unofficial",
+              "badge": "BETA",
+              "description": "Via QR Code, não oficial",
+              "library": "wa-unofficial-client"
+            },
+            {
+              "name": "Instagram",
+              "type": "official",
+              "steps": 4,
+              "api": "Meta API"
+            },
+            {
+              "name": "Facebook Messenger",
+              "type": "official",
+              "api": "Meta API"
+            },
+            {
+              "name": "Telegram",
+              "type": "official",
+              "api": "Bot API"
+            }
+          ],
+          "features": {
+            "groups": {
+              "create": true,
+              "link": true,
+              "whatsapp_groups": true
+            },
+            "agent_runtime_integration": "Monte etapas do agente direto no builder"
+          },
+          "stats": [
+            "TOTAL",
+            "ATIVOS",
+            "WHATSAPP",
+            "INSTAGRAM",
+            "FACEBOOK",
+            "TELEGRAM"
+          ]
+        },
+        {
+          "name": "Atendentes",
+          "route": "/attendant-management",
+          "icon": "headset",
+          "description": "Gestão de atendentes com configurações de distribuição e permissões",
+          "features": {
+            "invite": "Convidar Atendente",
+            "stats": [
+              "Total",
+              "Online",
+              "Ausente",
+              "Conversas"
+            ],
+            "distribution_modes": [
+              {
+                "name": "Manual",
+                "description": "Você decide quem atende cada conversa"
+              },
+              {
+                "name": "Auto-captura",
+                "description": "Atendentes capturam conversas livres"
+              },
+              {
+                "name": "Round-robin",
+                "description": "Distribuição automática balanceada"
+              },
+              {
+                "name": "Híbrido",
+                "description": "Round-robin + captura manual"
+              }
+            ],
+            "visibility_modes": [
+              {
+                "name": "Aberto",
+                "description": "Todos os atendentes veem todos os números"
+              },
+              {
+                "name": "Próprio + admin",
+                "description": "Vê o próprio número e os conectados pelo admin"
+              },
+              {
+                "name": "Isolado",
+                "description": "Vê somente o próprio número conectado"
+              }
+            ],
+            "advanced_config": {
+              "limite_por_atendente": "Máximo de conversas simultâneas (padrão: 10)",
+              "nome_nas_mensagens": "Exibe nome em negrito no WhatsApp",
+              "prefixo_nome": "Ex: 'Suporte -' → *Suporte - Ana:*",
+              "alerta_sem_atendente": "Tempo em minutos até alertar"
+            },
+            "tabs": [
+              "Configurações",
+              "Desempenho",
+              "Cargos",
+              "Acesso",
+              "Convites"
+            ]
+          },
+          "endpoints": [
+            "GET /api/v2/attendants/presence?organization_id=...&user_ids=...&online_window_minutes=3"
+          ]
+        },
+        {
+          "name": "Disparo WhatsApp",
+          "route": "/whatsapp-templates",
+          "icon": "send/paper-plane",
+          "description": "Disparo em massa via WhatsApp - Templates Meta (API oficial) ou texto livre (QR)",
+          "features": {
+            "official_api": {
+              "type": "Meta Templates",
+              "requirement": "WhatsApp Business API (WABA)"
+            },
+            "qr_code": {
+              "type": "Disparo em Texto Livre",
+              "description": "Via conexões QR não oficiais"
+            }
+          }
+        }
+      ]
+    },
+    "crm": {
+      "label": "CRM",
+      "items": [
+        {
+          "name": "Leads CRM (Kanban)",
+          "route": "/kanban",
+          "icon": "pipeline/funnel",
+          "description": "CRM de Leads com quadro Kanban - gerencie o funil com prioridade clara",
+          "features": {
+            "header_stats": [
+              "LEADS",
+              "FATURADO",
+              "CONVERSÃO",
+              "DESTAQUES"
+            ],
+            "pipeline_stages": [
+              "Lead",
+              "MQL (Marketing Qualified Lead)",
+              "Tentando contato",
+              "Em contato",
+              "SAL (Sales Accepted Lead)",
+              "SQL (Sales Qualified Lead)",
+              "Proposta",
+              "Negociação",
+              "Fechado Ganho",
+              "Fechado perdido"
+            ],
+            "stage_metrics": [
+              "ESTIMADO (R$)",
+              "CONVERSÃO (%)",
+              "PROGRESSÃO (%)"
+            ],
+            "filters": {
+              "search": "Buscar por nome, email, WhatsApp, origem...",
+              "destaques": true,
+              "pagos": true,
+              "convertidos": true,
+              "vendedor": "dropdown (todos/por usuário)",
+              "canal": [
+                "E-mail",
+                "Facebook",
+                "Instagram",
+                "LinkedIn",
+                "Google Ads",
+                "WhatsApp",
+                "Email Marketing",
+                "YouTube"
+              ],
+              "periodo": true,
+              "avancados": true
+            },
+            "card_info": [
+              "Prioridade (Alta/Média/Baixa)",
+              "Nome",
+              "Empresa",
+              "Valor estimado",
+              "Canal",
+              "Telefone",
+              "BANT Score",
+              "Temperatura (Frio/Morno/Quente)",
+              "Tempo parado",
+              "Atendente"
+            ],
+            "card_actions": [
+              "Abrir conversa no WhatsApp CRM",
+              "Ligar com IA"
+            ],
+            "multiple_pipelines": true,
+            "bant_framework": "0/4 critérios (Budget, Authority, Need, Timeline)",
+            "priority_levels": [
+              "Baixa",
+              "Média",
+              "Alta"
+            ]
+          }
+        },
+        {
+          "name": "Leads Lista",
+          "route": "/leads",
+          "icon": "list/person",
+          "description": "Visão tabular de todos os leads com filtros avançados",
+          "features": {
+            "search": "Buscar por nome, email, WhatsApp",
+            "total_shown": "577 leads (50 por página)",
+            "columns": [
+              "Nome",
+              "Contato (email/telefone)",
+              "Estágio",
+              "Prioridade",
+              "Criado em"
+            ],
+            "filters": {
+              "prioridade": [
+                "Baixa",
+                "Média",
+                "Alta"
+              ],
+              "periodo": true,
+              "minhas_visoes": "saved views",
+              "exibicao": "modo compacto/expandido",
+              "avancados": true
+            },
+            "bulk_actions": [
+              "Selecionar todos",
+              "Editar em massa",
+              "Excluir em massa"
+            ],
+            "display_modes": [
+              "Compacto",
+              "Expandido"
+            ],
+            "pagination": "Carregar mais"
+          }
+        },
+        {
+          "name": "Agenda",
+          "route": "/agenda",
+          "icon": "calendar",
+          "description": "Gerenciamento de agendamentos com integração Google Calendar",
+          "features": {
+            "integrations": [
+              "Google Calendar (OAuth)"
+            ],
+            "stats": [
+              "Total",
+              "Realizado",
+              "Agendado",
+              "IA (24h)"
+            ],
+            "view_modes": [
+              "Dia",
+              "Semana"
+            ],
+            "calendar_view": "grade semanal com horários",
+            "status_types": [
+              "Agendado",
+              "Realizado",
+              "Cancelado",
+              "Google Calendar"
+            ],
+            "filters": {
+              "colaborador": "dropdown todos/específico",
+              "avancados": true
+            },
+            "actions": [
+              "Novo Agendamento",
+              "Conectar Google Calendar"
+            ],
+            "collaborator_stats": [
+              "Colaboradores",
+              "Cargos"
+            ]
+          }
+        },
+        {
+          "name": "Clientes",
+          "route": "/clients",
+          "icon": "person-group",
+          "description": "Gestão de clientes convertidos (pós-venda)",
+          "features": {
+            "search": "Buscar por nome, email ou telefone",
+            "stats": [
+              "TOTAL",
+              "ATIVOS",
+              "ESTE MÊS",
+              "COM EMAIL"
+            ],
+            "filters_period": [
+              "Todos",
+              "Ativos",
+              "Inativos",
+              "Hoje",
+              "Últimos 7 dias",
+              "Este mês",
+              "Últimos 30 dias"
+            ],
+            "columns": [
+              "CLIENTE",
+              "CONTATO",
+              "STATUS",
+              "AÇÕES"
+            ],
+            "actions": [
+              "Exportar",
+              "Filtros",
+              "Novo Cliente"
+            ],
+            "display": [
+              "Compacto"
+            ]
+          }
+        },
+        {
+          "name": "Agendamentos Concluídos",
+          "route": "/appointments-completed",
+          "icon": "check-circle",
+          "description": "Histórico de agendamentos finalizados"
+        }
+      ]
+    },
+    "gestao": {
+      "label": "Gestão",
+      "items": [
+        {
+          "name": "Colaboradores",
+          "route": "/collaborators",
+          "icon": "person-group",
+          "description": "Gestão de colaboradores/equipe interna (profissionais que realizam atendimentos)",
+          "features": {
+            "search": "Buscar por nome, email, telefone ou cargo",
+            "stats": [
+              "TOTAL",
+              "ATIVOS",
+              "CARGOS"
+            ],
+            "actions": [
+              "Filtros",
+              "Recalcular Stats",
+              "Novo Colaborador"
+            ]
+          }
+        },
+        {
+          "name": "Financeiro",
+          "route": "/financial",
+          "icon": "dollar",
+          "description": "Dashboard financeiro com controle de entradas, saídas e fluxo de caixa",
+          "features": {
+            "tabs": [
+              "Visão Geral",
+              "Produtos"
+            ],
+            "period_filters": [
+              "Última Semana",
+              "Este mês",
+              "Personalizado"
+            ],
+            "header_actions": [
+              "Saved views",
+              "Save view",
+              "Filtros",
+              "Exportar",
+              "+Entrada",
+              "+Saída",
+              "Compacto"
+            ],
+            "dashboard_metrics": [
+              "Total Entradas",
+              "Total Saídas",
+              "Saldo Atual",
+              "Total Transações"
+            ],
+            "charts": {
+              "fluxo_caixa": {
+                "sub_metrics": [
+                  "Total Entradas",
+                  "Total Saídas",
+                  "Saldo Atual",
+                  "Variação (%)"
+                ],
+                "chart_types": [
+                  "Entradas",
+                  "Saídas"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "name": "Produtos e Serviços",
+          "route": "/products",
+          "icon": "box/shopping",
+          "description": "Catálogo comercial de produtos e serviços para uso no CRM e agentes",
+          "features": {
+            "tabs": [
+              "Catálogo",
+              "Agente IA",
+              "Migrar planilha"
+            ],
+            "stats": [
+              "ITENS",
+              "ATIVOS",
+              "IMAGENS",
+              "SEM ESTOQUE"
+            ],
+            "item_types": [
+              "Produto",
+              "Serviço",
+              "Consultoria",
+              "Assinatura",
+              "Curso",
+              "Evento"
+            ],
+            "status_types": [
+              "Ativo",
+              "Rascunho",
+              "Sob demanda",
+              "Fora do catálogo"
+            ],
+            "filters": {
+              "tipo": true,
+              "status": true,
+              "rapidos": [
+                "Sem estoque",
+                "Com imagens",
+                "Assinaturas"
+              ],
+              "tag": true
+            },
+            "display": {
+              "visual": [
+                "grid",
+                "lista"
+              ],
+              "density": [
+                "Confortável",
+                "Compacto"
+              ],
+              "ordering": "Nome A-Z / outros"
+            },
+            "import": "Migrar planilha (papaparse/xlsx)"
+          }
+        },
+        {
+          "name": "Funil de Métricas (Relatórios)",
+          "route": "/reports",
+          "icon": "chart-line",
+          "description": "Relatórios completos de métricas de funil, conversão e performance de agentes",
+          "features": {
+            "report_tabs": [
+              "Funil de Métricas",
+              "Agentes de IA",
+              "Humano"
+            ],
+            "period_filters": [
+              "Hoje",
+              "7d",
+              "30d",
+              "Este mês",
+              "Mês passado",
+              "Personalizado"
+            ],
+            "dimension_filters": {
+              "organizacao": "multi-tenant",
+              "canal": [
+                "Todos os canais",
+                "Instagram",
+                "Facebook",
+                "event",
+                "email",
+                "organic",
+                "LinkedIn",
+                "referral",
+                "unofficial_qr"
+              ],
+              "responsavel": "por atendente"
+            },
+            "overview_executivo": {
+              "metrics": [
+                "ENTRADAS NO FUNIL",
+                "CONVERSÃO GERAL (%)",
+                "CONVERSAS ATIVAS",
+                "SLA ATÉ 15 MIN",
+                "AGENDAMENTOS CRIADOS",
+                "AGENDAMENTOS CONCLUÍDOS",
+                "NO-SHOW (%)",
+                "VELOCITY (MOV/DIA - mudanças de estágio)",
+                "RECEITA DO PERÍODO (R$)"
+              ]
+            },
+            "sla_tracking": true,
+            "comparative_period": true,
+            "cache": true,
+            "chart_types": [
+              "AreaChart",
+              "PieChart",
+              "PolarChart"
+            ]
+          }
+        }
+      ]
+    },
+    "suporte": {
+      "label": "Suporte",
+      "items": [
+        {
+          "name": "FAQ & Ajuda",
+          "route": "/faq",
+          "icon": "question-circle"
+        },
+        {
+          "name": "Notificações",
+          "route": "/notifications",
+          "icon": "bell"
+        }
+      ]
+    }
+  },
+  "settings": {
+    "route": "/settings",
+    "sections": [
+      {
+        "name": "Geral",
+        "fields": [
+          "Nome da organização",
+          "Email",
+          "Telefone",
+          "Endereço"
+        ],
+        "plan_info": [
+          "TRIAL",
+          "expiração",
+          "Upgrade"
+        ]
+      },
+      {
+        "name": "SLAs do Pipeline",
+        "description": "Definição de SLAs por estágio do funil"
+      },
+      {
+        "name": "Metas",
+        "description": "Definição de metas de conversão e desempenho"
+      },
+      {
+        "name": "Templates",
+        "description": "Templates de mensagem WhatsApp (Meta)"
+      },
+      {
+        "name": "WhatsApp",
+        "description": "Configurações globais de WhatsApp"
+      },
+      {
+        "name": "Campos",
+        "description": "Campos personalizados para leads/clientes"
+      },
+      {
+        "name": "Voice AI",
+        "description": "Configuração de voz dos agentes (ElevenLabs)"
+      }
+    ],
+    "team_management": {
+      "invite_team": true
+    }
+  },
+  "entities": {
+    "Organization": {
+      "fields": [
+        "id (UUID)",
+        "name",
+        "email",
+        "phone",
+        "address",
+        "plan",
+        "trial_expires_at"
+      ],
+      "table": "organizations",
+      "relations": [
+        "users (memberships)",
+        "messaging_conversations",
+        "crm_leads"
+      ]
+    },
+    "User": {
+      "fields": [
+        "id (UUID)",
+        "email",
+        "role (owner/admin/attendant)",
+        "name"
+      ],
+      "table": "users",
+      "endpoints": "GET /api/v2/users/me, GET /api/v2/master/rest/v1/users"
+    },
+    "Membership": {
+      "fields": [
+        "id (UUID)",
+        "user_id",
+        "organization_id",
+        "permissions"
+      ],
+      "table": "memberships",
+      "endpoints": "GET /api/v2/memberships/{id}/permissions"
+    },
+    "Lead": {
+      "fields": [
+        "id",
+        "name",
+        "company",
+        "email",
+        "phone (WhatsApp)",
+        "stage (Lead/MQL/Tentando contato/Em contato/SAL/SQL/Proposta/Negociação/Fechado Ganho/Fechado perdido)",
+        "priority (Low/Medium/High)",
+        "estimated_value (R$)",
+        "channel (WhatsApp/Instagram/Facebook/LinkedIn/Google Ads/Email Marketing/YouTube)",
+        "bant_score (0-4)",
+        "temperature (Frio/Morno/Quente)",
+        "assigned_user_id",
+        "organization_id",
+        "created_at",
+        "last_activity_at",
+        "pipeline_id",
+        "is_highlight",
+        "is_paid",
+        "is_converted"
+      ],
+      "table": "crm_leads",
+      "total_observed": 577
+    },
+    "Pipeline": {
+      "fields": [
+        "id",
+        "name",
+        "organization_id",
+        "stages"
+      ],
+      "description": "Pipeline customizável com etapas arrastáveis (Kanban)"
+    },
+    "MessagingConversation": {
+      "fields": [
+        "id (UUID)",
+        "organization_id",
+        "assigned_user_id",
+        "handoff_mode (ia/hibrido/human)",
+        "channel_id",
+        "channel_type (unofficial_qr/waba/instagram/facebook)",
+        "contact_phone",
+        "status",
+        "created_at",
+        "updated_at",
+        "memory_type",
+        "last_message",
+        "unread_count"
+      ],
+      "table": "messaging_conversations",
+      "endpoints": "GET /api/v2/master/rest/v1/messaging_conversations"
+    },
+    "Contact": {
+      "fields": [
+        "id",
+        "name",
+        "phone",
+        "wa_id",
+        "organization_id",
+        "crm_lead_id",
+        "inbound_count",
+        "outbound_count"
+      ],
+      "table": "contacts"
+    },
+    "FollowUp": {
+      "fields": [
+        "id",
+        "organization_id",
+        "lead_id",
+        "status (active/watching/cooling_down)",
+        "scheduled_at",
+        "executed_at",
+        "type (ia/silence/sequence)"
+      ],
+      "table": "conversation_followup_tracker",
+      "endpoints": "GET /api/v2/master/rest/v1/conversation_followup_tracker"
+    },
+    "FollowUpSequenceRun": {
+      "fields": [
+        "id",
+        "organization_id",
+        "status (active/inactive)",
+        "sequence_id"
+      ],
+      "table": "followup_sequence_runs",
+      "endpoints": "GET /api/v2/master/rest/v1/followup_sequence_runs"
+    },
+    "AIAgent": {
+      "fields": [
+        "id",
+        "name",
+        "prompt",
+        "knowledge_base_ids",
+        "channel_ids",
+        "organization_id",
+        "provider_key_id"
+      ],
+      "description": "Agente de IA configurável com prompts, bases de conhecimento e conexões"
+    },
+    "KnowledgeBase": {
+      "fields": [
+        "id",
+        "name",
+        "description",
+        "organization_id",
+        "document_count",
+        "chunk_count",
+        "status"
+      ],
+      "table": "knowledge_bases"
+    },
+    "TrainingQA": {
+      "fields": [
+        "id",
+        "question",
+        "answer",
+        "organization_id",
+        "tags"
+      ],
+      "description": "Pares Q&A para treinamento do agente"
+    },
+    "Attendant": {
+      "fields": [
+        "id",
+        "user_id",
+        "organization_id",
+        "email",
+        "name",
+        "online_status",
+        "active_conversation_count",
+        "max_conversations"
+      ],
+      "table": "attendants"
+    },
+    "Channel": {
+      "fields": [
+        "id (UUID)",
+        "organization_id",
+        "type (unofficial_qr/waba/instagram/facebook/telegram)",
+        "status (connected/disconnected)",
+        "name",
+        "phone"
+      ],
+      "example_id": "73e6286e-b762-47a2-9b2b-6b8a32bd9ebc"
+    },
+    "Appointment": {
+      "fields": [
+        "id",
+        "organization_id",
+        "client_id",
+        "collaborator_id",
+        "product_id",
+        "status (Agendado/Realizado/Cancelado)",
+        "scheduled_at",
+        "notes",
+        "google_calendar_event_id"
+      ],
+      "table": "appointments"
+    },
+    "Client": {
+      "fields": [
+        "id",
+        "organization_id",
+        "name",
+        "email",
+        "phone",
+        "status (Ativo/Inativo)",
+        "created_at"
+      ],
+      "table": "clients"
+    },
+    "Collaborator": {
+      "fields": [
+        "id",
+        "organization_id",
+        "name",
+        "email",
+        "phone",
+        "role/cargo",
+        "status",
+        "stats"
+      ],
+      "table": "collaborators"
+    },
+    "Financial": {
+      "fields": [
+        "id",
+        "organization_id",
+        "type (entrada/saida)",
+        "amount",
+        "description",
+        "product_id",
+        "client_id",
+        "date"
+      ],
+      "table": "financial_transactions"
+    },
+    "Product": {
+      "fields": [
+        "id",
+        "organization_id",
+        "name",
+        "type (Produto/Serviço/Consultoria/Assinatura/Curso/Evento)",
+        "price",
+        "status (Ativo/Rascunho/Sob demanda/Fora do catálogo)",
+        "images",
+        "stock",
+        "tags"
+      ],
+      "table": "products_services"
+    },
+    "WhatsAppTemplate": {
+      "fields": [
+        "id",
+        "organization_id",
+        "channel_id",
+        "name",
+        "body",
+        "type",
+        "variables"
+      ],
+      "description": "Templates Meta para envio via WABA"
+    }
+  },
+  "api_endpoints_observed": {
+    "auth": [
+      "GET /api/v2/users/me",
+      "GET /api/v2/memberships/{id}/permissions",
+      "POST /api/v2/master/rpc/ensure_member_user"
+    ],
+    "conversations": [
+      "GET /api/v2/master/rest/v1/messaging_conversations?select=id&organization_id=eq.{id}&handoff_mode=eq.human&assigned_user_id=is.null",
+      "GET /api/v2/attendants/presence?organization_id={id}&user_ids={...}&online_window_minutes=3"
+    ],
+    "followups": [
+      "GET /api/v2/master/rest/v1/conversation_followup_tracker?select=*&organization_id=eq.{id}&status=in.(watching,cooling_down)",
+      "GET /api/v2/master/rest/v1/followup_sequence_runs?select=*&organization_id=eq.{id}&status=eq.active"
+    ],
+    "users": [
+      "GET /api/v2/master/rest/v1/users?select=role&id=eq.{id}"
+    ],
+    "billing": [
+      "GET /api/v2/master/rest/v1/saas_credit_auto_recharge_settings?select=enabled,threshold_credits,package_credits,max_recharges_per_day,stripe_customer_id,stripe_payment_method_id,last_recharge_at,last_recharge_status,last_recharge_error&user_id=eq.{id}"
+    ],
+    "edge_functions": [
+      "POST https://edge.automatiklabs.com.br/functions/v1/track-event"
+    ]
+  },
+  "_metadata": {
+    "source": "user_pasted_attachment",
+    "captured_at": "2026-06-23",
+    "parse_status": "partial_valid_json",
+    "note": "Original paste is truncated in routes_map at line 859; normalized JSON preserves all complete fields through api_endpoints_observed and records the visible partial routes below.",
+    "raw_source": "sources/tomikcrm_futura_ia_2026-06-23.raw.txt",
+    "partial_routes_map_observed": {
+      "/hub": "Central de Produtos (seletor de modulos)",
+      "/app": "TomikAI - Chat com Estrategista (agente IA interno)",
+      "/chat-live": "Chat ao Vivo (atendimento... [truncated in attachment]"
+    }
+  }
+}
