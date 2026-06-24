@@ -205,9 +205,11 @@ async def update_content(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="invalid status")
     sets, params = ["updated_at = now()"], {"id": str(piece_id), "a": str(principal.agency_id)}
     if payload.status is not None:
-        sets.append("status = :st"); params["st"] = payload.status
+        sets.append("status = :st")
+        params["st"] = payload.status
     if payload.body is not None:
-        sets.append("body = :bo"); params["bo"] = payload.body
+        sets.append("body = :bo")
+        params["bo"] = payload.body
     async with session_scope(_factory(request)) as session:
         row = (await session.execute(
             text(f"update content_pieces set {', '.join(sets)} where id = :id and agency_id = :a returning status"),

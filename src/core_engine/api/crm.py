@@ -205,7 +205,7 @@ async def list_deals(
             text(
                 """
                 select id, pipeline_id, stage_id, title, value_cents, currency,
-                       version, updated_at
+                       version, updated_at, bant_score, temperature, next_best_action, ai_score
                 from deals
                 where agency_id = :agency_id
                 order by updated_at desc
@@ -224,6 +224,10 @@ async def list_deals(
             "value_cents": r["value_cents"],
             "currency": r["currency"],
             "version": r["version"],
+            "bant_score": r["bant_score"],
+            "temperature": r["temperature"],
+            "next_best_action": r["next_best_action"],
+            "ai_score": r["ai_score"],
             "updated_at": r["updated_at"].isoformat() if r["updated_at"] else None,
         }
         for r in rows

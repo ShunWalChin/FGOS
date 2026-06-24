@@ -15,6 +15,7 @@ from typing import Any
 
 from sqlalchemy import text
 
+from core_engine.ai.guardrails import evaluate_guardrails
 from core_engine.bus import RedisStreamBus
 from core_engine.db import create_session_factory, session_scope
 from core_engine.events import Actor, EventEnvelope
@@ -125,6 +126,12 @@ async def _claim_and_generate(session, bus: RedisStreamBus, settings: Settings) 
         brand = dict(brand) if brand else None
 
     body = _generate_draft(dict(row), brand)
+    guardrail = evaluate_guardrails(user_text=row["prompt"] or row["title"], assistant_text=body)
+    if guardrail.action == "block":
+        body = (
+            "Rascunho retido pelo guardrail. Revise o briefing e gere novamente "
+            "sem instruções inseguras ou dados sensíveis."
+        )
     live = bool(getattr(settings, "messaging_llm_live", False))
     await session.execute(
         text("update content_pieces set body = :b, status = 'draft', model = :m, updated_at = now() where id = :id"),

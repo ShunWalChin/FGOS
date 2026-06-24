@@ -56,9 +56,19 @@ class Settings(BaseSettings):
     # network — the whole conversation pipeline runs offline.
     messaging_live: bool = False        # send real outbound messages (Meta Send API)
     messaging_llm_live: bool = False    # call a real LLM provider
-    llm_provider: str = "anthropic"     # anthropic | openai | groq
+    llm_provider: str = "anthropic"     # anthropic | openai | groq | openai-compatible
     llm_model: str = "claude-sonnet-4-5"
     llm_api_key: str = ""
+    llm_base_url: str = ""
+    llm_temperature: float = 0.4
+    llm_max_tokens: int = 700
+
+    # Intelligence tools. These are dry-run/deterministic by default and can be
+    # adopted per agency without changing the event spine.
+    intelligence_default_regime: str = "semi"  # manual | semi | auto
+    intelligence_guardrails_strict: bool = False
+    rag_chunk_chars: int = 900
+    rag_chunk_overlap: int = 120
 
     stream_events: str = "stream:events"
     stream_webhooks_meta: str = "stream:webhooks.meta"

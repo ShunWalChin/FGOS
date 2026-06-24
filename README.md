@@ -73,6 +73,7 @@ Regras inegociáveis do barramento (ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE
 | **Acesso** | Auth + Onboarding | ✅ login JWT multi-tenant + signup self-service white-label | `app_users`, `agencies` (slug/branding) |
 | **Voz** | ElevenLabs Convai | ✅ agente de voz por agência + painel holográfico | `voice_agents` |
 | **Growth** | growthOS (brand voice) | ✅ brand voice + content pieces (draft→approved→published) + **lint anti-slop** | `brand_voices`, `content_pieces` |
+| **Intelligence** | SantanderAI patterns | ✅ LLM bridge + guardrails + RAG + governança + BANT + vault operacional | `knowledge_bases`, `ai_*`, `lead_score_history` |
 
 ## MVP — espinha em 4 comandos
 
@@ -161,6 +162,7 @@ python -m compileall src
 | [docs/MODULE-E-BI.md](docs/MODULE-E-BI.md) | Módulo BI (fase 4): CQRS, API de leitura ClickHouse, dashboard ECharts |
 | [docs/MODULE-AUTH-ONBOARDING.md](docs/MODULE-AUTH-ONBOARDING.md) | Auth (fase 5): login JWT multi-tenant, onboarding self-service, white-label |
 | [docs/MODULE-WEB.md](docs/MODULE-WEB.md) | Web App (fase 6): SPA React+Vite+TS, telas, client tipado, base mobile |
+| [docs/MODULE-INTELLIGENCE.md](docs/MODULE-INTELLIGENCE.md) | Intelligence: LLM bridge, guardrails, RAG, governança, BANT score e vault |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | **Fonte da verdade** — EDT completa: contrato de eventos, DDL, código crítico, CQRS, backups |
 | [docs/EXTRACTION-INTEGRATION-KB.md](docs/EXTRACTION-INTEGRATION-KB.md) | Rota alternativa de escala: integrar OSS (Plane/Twenty/Postiz/Evolution/Superset) |
 | [docs/COMPETITOR-IMPULSE-CRM.md](docs/COMPETITOR-IMPULSE-CRM.md) | Engenharia reversa do concorrente Impulse CRM + mapeamento → FGOS + oportunidades de roadmap |
