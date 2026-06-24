@@ -88,6 +88,10 @@ export interface Deal {
   value_cents: number;
   currency: string;
   version: number;
+  bant_score?: number;
+  temperature?: string;
+  next_best_action?: string | null;
+  ai_score?: Record<string, unknown>;
   updated_at: string | null;
 }
 export interface Workspace {
@@ -258,6 +262,77 @@ export interface ContentPiece {
   status: string;
   brand_voice_id: string | null;
   updated_at: string | null;
+}
+export interface IntelligenceTool {
+  id: string;
+  name: string;
+  status: string;
+  count?: number;
+}
+export interface LLMComplete {
+  text: string;
+  provider: string;
+  model: string;
+  dry_run: boolean;
+  tokens: number;
+  latency_ms: number;
+}
+export interface GuardrailFinding {
+  code: string;
+  severity: string;
+  message: string;
+}
+export interface GuardrailDecision {
+  allowed: boolean;
+  action: string;
+  risk_score: number;
+  findings: GuardrailFinding[];
+}
+export interface GuardrailPolicy {
+  id: string;
+  name: string;
+  rules: Record<string, unknown>;
+  active: boolean;
+  updated_at: string;
+}
+export interface KnowledgeBase {
+  id: string;
+  name: string;
+  description: string | null;
+  status: string;
+  documents: number;
+  chunks: number;
+  updated_at: string;
+}
+export interface RagHit {
+  id: string;
+  title: string;
+  score: number;
+  body: string;
+}
+export interface GovernanceDecision {
+  status: string;
+  reason: string;
+  required_approval: boolean;
+  risk_score: number;
+  regime_description: string;
+  guardrail?: GuardrailDecision;
+}
+export interface LeadScore {
+  bant_score: number;
+  probability: number;
+  temperature: string;
+  next_best_action: string;
+  signals: Record<string, boolean>;
+  explanation: string[];
+}
+export interface VaultNote {
+  id: string;
+  kind: string;
+  title: string;
+  body: string;
+  tags: string[];
+  updated_at: string;
 }
 
 const q = (params: Record<string, string | number>): string =>
@@ -435,4 +510,43 @@ export const api = {
     }),
   generateContent: (body: { type: string; title: string; prompt: string; platform?: string; brand_voice_id?: string }) =>
     req<{ id: string; status: string }>("/api/content-pieces/generate", { method: "POST", body: JSON.stringify(body) }),
+
+  // Intelligence workspace: LLM bridge, guardrails, RAG, governance, scoring, vault
+  intelligenceTools: () => req<{ tools: IntelligenceTool[] }>("/api/intelligence/tools"),
+  llmComplete: (body: { system?: string; user: string; provider?: string; model?: string }) =>
+    req<LLMComplete>("/api/intelligence/llm/complete", { method: "POST", body: JSON.stringify(body) }),
+  guardrailPolicies: () => req<GuardrailPolicy[]>("/api/intelligence/guardrails/policies"),
+  createGuardrailPolicy: (body: { name: string; rules: Record<string, unknown>; active?: boolean }) =>
+    req<{ id: string }>("/api/intelligence/guardrails/policies", { method: "POST", body: JSON.stringify(body) }),
+  evaluateGuardrail: (body: { user_text: string; assistant_text?: string; surface?: string; policy_id?: string }) =>
+    req<GuardrailDecision>("/api/intelligence/guardrails/evaluate", { method: "POST", body: JSON.stringify(body) }),
+  knowledgeBases: () => req<KnowledgeBase[]>("/api/intelligence/knowledge-bases"),
+  createKnowledgeBase: (body: { name: string; description?: string }) =>
+    req<{ id: string }>("/api/intelligence/knowledge-bases", { method: "POST", body: JSON.stringify(body) }),
+  addKnowledgeDocument: (baseId: string, body: { title: string; body: string; source?: string }) =>
+    req<{ id: string; chunks: number }>(`/api/intelligence/knowledge-bases/${baseId}/documents`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  queryKnowledgeBase: (baseId: string, body: { question: string; k?: number; answer?: boolean }) =>
+    req<{ hits: RagHit[]; context: string; answer: string | null }>(
+      `/api/intelligence/knowledge-bases/${baseId}/query`,
+      { method: "POST", body: JSON.stringify(body) }
+    ),
+  evaluateGovernance: (body: {
+    action: string;
+    regime: string;
+    confidence: number;
+    impact: string;
+    reversible: boolean;
+    user_text?: string;
+    assistant_text?: string;
+  }) => req<GovernanceDecision>("/api/intelligence/governance/evaluate", { method: "POST", body: JSON.stringify(body) }),
+  governanceAudits: () => req<Array<{ action: string; regime: string; status: string; risk_score: number; reason: string; created_at: string }>>("/api/intelligence/governance/audits"),
+  scoreLead: (body: { deal_id?: string; title?: string; notes?: string; value_cents?: number; apply?: boolean }) =>
+    req<LeadScore>("/api/intelligence/lead-score", { method: "POST", body: JSON.stringify(body) }),
+  vaultNotes: () => req<VaultNote[]>("/api/intelligence/vault/notes"),
+  createVaultNote: (body: { kind?: string; title: string; body: string; tags?: string[] }) =>
+    req<{ id: string; kind: string }>("/api/intelligence/vault/notes", { method: "POST", body: JSON.stringify(body) }),
+  searchVault: (query: string) => req<{ hits: RagHit[] }>("/api/intelligence/vault/search" + q({ q: query })),
 };

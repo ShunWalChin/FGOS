@@ -16,6 +16,7 @@ from core_engine.api.chat import router as chat_router
 from core_engine.api.growth import router as growth_router
 from core_engine.api.crm import router as crm_router
 from core_engine.api.ingest import router as ingest_router
+from core_engine.api.intelligence import router as intelligence_router
 from core_engine.api.onboarding import router as onboarding_router
 from core_engine.api.social import router as social_router
 from core_engine.api.social_extras import router as social_extras_router
@@ -72,6 +73,7 @@ def build_app(settings: Settings | None = None, bus: RedisStreamBus | None = Non
     app.include_router(social_extras_router)
     app.include_router(voice_router)
     app.include_router(growth_router)
+    app.include_router(intelligence_router)
     app.include_router(chat_router)
     app.include_router(atendimento_router)
     app.include_router(campaigns_router)

@@ -9,6 +9,7 @@
 # ── FGOS runtime artifacts ────────────────────────────────────
 .seed.json
 .codex-*.log
+.codex-*.pid
 
 # ── Python ────────────────────────────────────────────────────
 __pycache__/

@@ -6,6 +6,7 @@ import time
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core_engine.ai.guardrails import evaluate_guardrails
 from core_engine import repository as repo
 from core_engine.bus import RedisStreamBus
 from core_engine.db import create_session_factory, session_scope
@@ -132,7 +133,14 @@ async def _respond(
         replies.append(reply.text)
 
     messenger = get_messenger(chat["channel"], settings)
+    guardrail_handoff = False
     for body in replies:
+        guardrail = evaluate_guardrails(user_text=text, assistant_text=body)
+        if guardrail.action == "block":
+            body = "Vou encaminhar seu atendimento para uma pessoa da equipe para seguir com segurança."
+            guardrail_handoff = True
+        elif guardrail.action == "handoff":
+            guardrail_handoff = True
         send = await messenger.send(to=chat["contact_id"], text=body)
         await repo.insert_message(
             db, session_id=session_id, direction="out", body=body,
@@ -152,7 +160,7 @@ async def _respond(
         context=json.dumps(decision.context_updates, ensure_ascii=True),
     )
 
-    if decision.handoff:
+    if decision.handoff or guardrail_handoff:
         await repo.set_session_mode(db, session_id=session_id, mode="human")
         await bus.publish(settings.stream_events, EventEnvelope(
             event="messaging.session.handoff",
